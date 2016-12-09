@@ -1,0 +1,11 @@
+Formats DEFINITIONS ::= BEGIN
+
+QTM ::= ENUMERATED {
+    very-bad (0), bad (1), neutral (2), good (3), very-good (4)
+}
+
+SL ::= SEQUENCE {
+    b REAL, d REAL, u REAL
+}
+
+END
