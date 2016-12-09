@@ -13,7 +13,7 @@ setup(
     author=AUTHOR,
     author_email=EMAIL,
     packages=['trustmessages'],
-    install_requires=["pyasn1", "antlr4", "asn1ate"],
+    install_requires=["pyasn1", "antlr4-python2-runtime", "asn1ate"],
     test_suite='nose.collector',
     tests_require=['nose'],
     include_package_data=True,

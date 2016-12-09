@@ -48,4 +48,5 @@ target/
 # *.sublime-project
 *.sublime-workspace
 
-.ipynb_checkpoints*
+.ipynb_checkpoints/
+.eggs/
