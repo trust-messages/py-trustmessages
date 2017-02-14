@@ -11,7 +11,7 @@ from trustdatabase import QtmDb, SLDb
 from functools import partial
 
 
-def simple_tms(ts, address, port, data, db):
+def simple_tms(ts, address, port, data, db, provider):
     try:
         message, remaining = decoder.decode(data, asn1Spec=Message())
         assert remaining == "", "Message did not fully decode."
@@ -25,6 +25,8 @@ def simple_tms(ts, address, port, data, db):
             predicate = create_predicate(component["query"])
             hits = itertools.ifilter(predicate, db.ASSESSMENT_DB)
             reply = AssessmentResponse()
+            reply["provider"] = provider
+            reply["format"] = db.TMS
             reply["rid"] = component["rid"]
             reply["response"] = univ.SequenceOf(componentType=Assessment())
             reply["response"].setComponents(*hits)
@@ -36,6 +38,8 @@ def simple_tms(ts, address, port, data, db):
             predicate = create_predicate(component["query"])
             hits = itertools.ifilter(predicate, db.TRUST_DB)
             reply = TrustResponse()
+            reply["provider"] = provider
+            reply["format"] = db.TMS
             reply["rid"] = component["rid"]
             reply["response"] = univ.SequenceOf(componentType=Trust())
             reply["response"].setComponents(*hits)
@@ -47,7 +51,7 @@ def simple_tms(ts, address, port, data, db):
             reply = FormatResponse()
             reply["assessment"] = db.TRUST_SCHEMA
             reply["trust"] = db.ASSESSMENT_SCHEMA
-            reply["tms"] = db.TMS
+            reply["format"] = db.TMS
             ts.send(address, port, encoder.encode(reply))
         elif type_ == "format-response":
             print(component.prettyPrint())
@@ -56,8 +60,8 @@ def simple_tms(ts, address, port, data, db):
               address, port, len(data), e))
 
 
-def main(address, port, database):
-    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb())
+def main(address, port, database, provider):
+    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb(), provider=provider)
     ts = trustsocket.TrustSocket(address, port, handler)
     ts.start()
 
@@ -98,18 +102,18 @@ def main(address, port, database):
             print("Forcing shutdown.")
             break
         except Exception as e:
-            print("Parse error %s" % e)
+            print("Error (%s) %s" % (type(e), e))
 
     print("Shutting down.")
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Provide a port number and a database type")
+    if len(sys.argv) != 4:
+        print("Provide a port number, a database type and a name for this TMS")
         sys.exit(1)
 
     if sys.argv[2] not in ("qtm", "sl"):
         print("Choose either a 'qtm' or a 'sl' database")
         sys.exit(1)
 
-    main("", int(sys.argv[1]), sys.argv[2])
+    main("", int(sys.argv[1]), sys.argv[2], sys.argv[3])
