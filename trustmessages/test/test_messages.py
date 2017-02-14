@@ -28,7 +28,6 @@ class AbstractTests(unittest.TestCase):
 class TestMessages(AbstractTests):
     def test_assessment_quantitative(self):
         r = Assessment()
-        r["tms"] = univ.ObjectIdentifier((1, 1, 1))
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
@@ -42,7 +41,6 @@ class TestMessages(AbstractTests):
 
     def test_assessment_qualitative(self):
         r = Assessment()
-        r["tms"] = univ.ObjectIdentifier((2, 2, 2))
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
@@ -68,12 +66,13 @@ class TestMessages(AbstractTests):
 
     def test_assessment_response(self):
         a_res = AssessmentResponse()
+        a_res["provider"] = Entity("ebay")
+        a_res["format"] = Format((1, 1, 1))
         a_res["rid"] = 1
         a_res["response"] = univ.SequenceOf(componentType=Assessment())
 
         for i in xrange(2):
             a = Assessment()
-            a["tms"] = SystemIdentity((1, 1, 1))
             a["source"] = next(self.users)
             a["target"] = next(self.users)
             a["service"] = next(self.services)
@@ -100,12 +99,13 @@ class TestMessages(AbstractTests):
 
     def test_trust_response(self):
         t_res = TrustResponse()
+        t_res["provider"] = Entity("ebay")
+        t_res["format"] = univ.ObjectIdentifier((1, 1, 1))
         t_res["rid"] = 70000
         t_res["response"] = univ.SequenceOf(componentType=Trust())
 
         for i in xrange(2):
             t = Trust()
-            t["tms"] = univ.ObjectIdentifier((1, 1, 1))
             t["target"] = next(self.users)
             t["service"] = next(self.services)
             t["date"] = 2000
@@ -125,7 +125,7 @@ class TestMessages(AbstractTests):
 
     def test_format_response(self):
         f_res = FormatResponse()
-        f_res["tms"] = SystemIdentity((1, 2, 3))
+        f_res["format"] = Format((1, 2, 3))
         f_res["assessment"] = char.PrintableString("Here be an ASN.1 spec for assessment values")
         f_res["trust"] = char.PrintableString("Here be an ASN.1 spec for trust values")
 
@@ -207,7 +207,6 @@ class TestQueries(AbstractTests):
 class TestPrinting(AbstractTests):
     def test_assessment_quantitative(self):
         r = Assessment()
-        r["tms"] = univ.ObjectIdentifier((2, 2, 2))
         r["source"] = "djelenc@gmail.com"
         r["target"] = "david.jelenc@fri.uni-lj.si"
         r["service"] = "seller"

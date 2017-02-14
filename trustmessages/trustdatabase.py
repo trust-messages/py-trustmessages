@@ -22,7 +22,7 @@ class InMemoryTrustDatabase(object):
                 hit = line.find("value=0x")
 
                 if hit > -1:
-                    v, _ = decoder.decode(m["value"], asn1Spec=InMemoryTrustDatabase.SYSTEMS[m["tms"]]["trust"]())
+                    v, _ = decoder.decode(m["value"], asn1Spec=InMemoryTrustDatabase.SYSTEMS[m["format"]]["trust"]())
                     buff.write(line[:hit + 6])
                     buff.write(v.prettyPrint())
                 else:
@@ -68,7 +68,6 @@ class InMemoryTrustDatabase(object):
 
     def create_trust(self, target, service, date, value):
         t = messages.Trust()
-        t["tms"] = self.TMS
         t["target"] = target
         t["service"] = service
         t["date"] = date
@@ -77,7 +76,6 @@ class InMemoryTrustDatabase(object):
 
     def create_assessment(self, source, target, service, date, value):
         a = messages.Assessment()
-        a["tms"] = self.TMS
         a["source"] = source
         a["target"] = target
         a["service"] = service
