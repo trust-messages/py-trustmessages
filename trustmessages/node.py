@@ -56,8 +56,8 @@ def simple_tms(ts, address, port, data, db, provider):
         elif type_ == "format-response":
             print(component.prettyPrint())
     except Exception as e:
-        print("(%s, %d): Error while parsing (size=%dB): %s" % (
-              address, port, len(data), e))
+        print("(%s, %d): Error while parsing (size=%dB) [%s]: %s" % (
+              address, port, len(data), type(e), e))
 
 
 def main(address, port, database, provider):
