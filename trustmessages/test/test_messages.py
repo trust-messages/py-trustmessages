@@ -1,11 +1,16 @@
-import unittest
-import itertools
-from pyasn1.type import univ
-from pyasn1.type import char
-from pyasn1.codec.ber import encoder
-from pyasn1.codec.ber import decoder
-from trustmessages import *
+from __future__ import absolute_import, print_function
+
 import base64
+import itertools
+import unittest
+
+from pyasn1.codec.ber import decoder, encoder
+from pyasn1.type import char, univ
+
+from .. import (Assessment, AssessmentRequest, AssessmentResponse, Comparison,
+                Entity, Fault, Format, FormatRequest, FormatResponse, Logical,
+                Message, QtmDb, Query, Trust, TrustRequest, TrustResponse,
+                Value, trustutils)
 
 
 class AbstractTests(unittest.TestCase):
@@ -15,17 +20,18 @@ class AbstractTests(unittest.TestCase):
     qualitative = itertools.cycle(["distrust", "neutral", "trust"])
     qtm = QtmDb()
 
-    def encode(self):
+    def encode(self, m):
         return base64.b64encode(encoder.encode(m))
 
-    def decode(self):
+    def decode(self, m):
         return base64.b64decode(m)
 
-    def to_bytes(self):
+    def to_bytes(self, s):
         return ":".join("{:02x}".format(ord(c)) for c in s)
 
 
 class TestMessages(AbstractTests):
+
     def test_assessment_quantitative(self):
         r = Assessment()
         r["source"] = next(self.users)
@@ -37,7 +43,8 @@ class TestMessages(AbstractTests):
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
 
         assert(r.prettyPrint() == decoded.prettyPrint())
-        assert(decoder.decode(decoded["value"], asn1Spec=univ.Integer())[0] == val)
+        assert(decoder.decode(decoded["value"],
+                              asn1Spec=univ.Integer())[0] == val)
 
     def test_assessment_qualitative(self):
         r = Assessment()
@@ -50,7 +57,8 @@ class TestMessages(AbstractTests):
 
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
         assert(r.prettyPrint() == decoded.prettyPrint())
-        assert(decoder.decode(decoded["value"], asn1Spec=char.PrintableString())[0] == val)
+        assert(decoder.decode(decoded["value"],
+                              asn1Spec=char.PrintableString())[0] == val)
 
     def test_assessment_request(self):
         a_req = AssessmentRequest()
@@ -109,7 +117,8 @@ class TestMessages(AbstractTests):
             t["target"] = next(self.users)
             t["service"] = next(self.services)
             t["date"] = 2000
-            t["value"] = encoder.encode(char.PrintableString(next(self.qualitative)))
+            t["value"] = encoder.encode(
+                char.PrintableString(next(self.qualitative)))
             t_res["response"].setComponentByPosition(i, t)
 
         data, _ = decoder.decode(encoder.encode(t_res), asn1Spec=Message())
@@ -126,8 +135,10 @@ class TestMessages(AbstractTests):
     def test_format_response(self):
         f_res = FormatResponse()
         f_res["format"] = Format((1, 2, 3))
-        f_res["assessment"] = char.PrintableString("Here be an ASN.1 spec for assessment values")
-        f_res["trust"] = char.PrintableString("Here be an ASN.1 spec for trust values")
+        f_res["assessment"] = char.PrintableString(
+            "Here be an ASN.1 spec for assessment values")
+        f_res["trust"] = char.PrintableString(
+            "Here be an ASN.1 spec for trust values")
 
         data, _ = decoder.decode(encoder.encode(f_res), asn1Spec=Message())
         assert(data.getComponent() == f_res)
@@ -145,6 +156,7 @@ class TestMessages(AbstractTests):
 
 
 class TestQueries(AbstractTests):
+
     def test_simple_query1(self):
         sq1 = Query()
         sq1["cmp"] = Comparison()
@@ -153,7 +165,7 @@ class TestQueries(AbstractTests):
         sq1["cmp"]["value"]["date"] = 50
 
         assert(all(t["date"] < 50
-               for t in itertools.ifilter(trustutils.create_predicate(sq1), self.qtm.ASSESSMENT_DB)))
+                   for t in itertools.ifilter(trustutils.create_predicate(sq1), self.qtm.ASSESSMENT_DB)))
 
     def test_simple_query2(self):
         sq2 = Query()
@@ -171,7 +183,7 @@ class TestQueries(AbstractTests):
         sq2["log"]["r"]["cmp"]["value"]["target"] = "bob"
 
         assert(all(t["source"] == "alice" and t["target"] == "bob"
-               for t in itertools.ifilter(trustutils.create_predicate(sq2), self.qtm.ASSESSMENT_DB)))
+                   for t in itertools.ifilter(trustutils.create_predicate(sq2), self.qtm.ASSESSMENT_DB)))
 
     def test_simple_query3(self):
         q = Query()
@@ -197,7 +209,7 @@ class TestQueries(AbstractTests):
         q["log"]["r"]["log"]["r"]["cmp"]["value"]["source"] = "david"
 
         assert(all(t["service"] == "seller" and (t["source"] == "charlie" or t["source"] == "david")
-               for t in itertools.ifilter(trustutils.create_predicate(q), self.qtm.ASSESSMENT_DB)))
+                   for t in itertools.ifilter(trustutils.create_predicate(q), self.qtm.ASSESSMENT_DB)))
         substrate = encoder.encode(q)
         d, e = decoder.decode(substrate, asn1Spec=Query())
         assert(d == q)
@@ -205,6 +217,7 @@ class TestQueries(AbstractTests):
 
 
 class TestPrinting(AbstractTests):
+
     def test_assessment_quantitative(self):
         r = Assessment()
         r["source"] = "djelenc@gmail.com"
@@ -215,8 +228,10 @@ class TestPrinting(AbstractTests):
 
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
         assert(r.prettyPrint() == decoded.prettyPrint())
-        v, _ = decoder.decode(decoded["value"], asn1Spec=self.qtm.AssessmentClass())
+        v, _ = decoder.decode(
+            decoded["value"], asn1Spec=self.qtm.AssessmentClass())
 
     def test_decode_java_query(self):
-        bytez = base64.b64decode("ZlQCAQFlTwoBAGUuCgEAZAoKAQBABWRhdmlkZR0KAQFkCwoBAEMGc2VsbGVyZAsKAQBDBmxldHRlcmUaCgEBZAkKAQBBBGJhbHVkCgoBAEEFYWxla3M=")
+        bytez = base64.b64decode("ZlQCAQFlTwoBAGUuCgEAZAoKAQBABWRhdmlkZR0KAQFkC" \
+        "woBAEMGc2VsbGVyZAsKAQBDBmxldHRlcmUaCgEBZAkKAQBBBGJhbHVkCgoBAEEFYWxla3M=")
         m, _ = decoder.decode(bytez, asn1Spec=Message())

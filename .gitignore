@@ -50,3 +50,7 @@ target/
 
 .ipynb_checkpoints/
 .eggs/
+
+.noseids
+.vscode/
+tags

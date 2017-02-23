@@ -1,14 +1,22 @@
-import sys
-import trustsocket
+"""
+Example TMS.
+"""
+from __future__ import absolute_import, print_function
+
 import itertools
-import random
-from trustutils import *
-from messages import *
-from pyasn1.codec.ber import encoder
-from pyasn1.codec.ber import decoder
-from pyasn1.type import univ
-from trustdatabase import QtmDb, SLDb
+import sys
 from functools import partial
+from random import randint
+
+from pyasn1.codec.ber import decoder, encoder
+from pyasn1.type import univ
+
+from trustmessages import trustsocket
+from trustmessages.messages import (Assessment, AssessmentRequest, AssessmentResponse,
+                                    FormatRequest, FormatResponse, Message, Trust,
+                                    TrustRequest, TrustResponse)
+from trustmessages.trustdatabase import QtmDb, SLDb
+from trustmessages.trustutils import create_predicate, create_query, pp
 
 
 def simple_tms(ts, address, port, data, db, provider):
@@ -57,11 +65,12 @@ def simple_tms(ts, address, port, data, db, provider):
             print(component.prettyPrint())
     except Exception as e:
         print("(%s, %d): Error while parsing (size=%dB) [%s]: %s" % (
-              address, port, len(data), type(e), e))
+            address, port, len(data), type(e), e))
 
 
 def main(address, port, database, provider):
-    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb(), provider=provider)
+    handler = partial(simple_tms, db=QtmDb() if database ==
+                      'qtm' else SLDb(), provider=provider)
     ts = trustsocket.TrustSocket(address, port, handler)
     ts.start()
 
@@ -76,7 +85,7 @@ def main(address, port, database, provider):
             elif len(split) > 3:
                 address, port, verb, q = split
             else:
-                print "Invalid command: %s" % user_input
+                print("Invalid command: %s" % user_input)
                 continue
             port = int(port)
 
@@ -86,18 +95,18 @@ def main(address, port, database, provider):
                 ts.disconnect(address, port)
             elif verb == "areq":
                 req = AssessmentRequest()
-                req["rid"] = random.randint(-32700, 32700)
+                req["rid"] = randint(-32700, 32700)
                 req["query"] = create_query(q)
                 ts.send(address, port, encoder.encode(req))
             elif verb == "treq":
                 req = TrustRequest()
-                req["rid"] = random.randint(-32700, 32700)
+                req["rid"] = randint(-32700, 32700)
                 req["query"] = create_query(q)
                 ts.send(address, port, encoder.encode(req))
             elif verb == "freq":
                 ts.send(address, port, encoder.encode(FormatRequest()))
             else:
-                print "Unknown verb: %s" % verb
+                print("Unknown verb: %s" % verb)
         except KeyboardInterrupt:
             print("Forcing shutdown.")
             break

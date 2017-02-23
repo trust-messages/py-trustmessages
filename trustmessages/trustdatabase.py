@@ -1,11 +1,14 @@
-import messages
+from __future__ import absolute_import, print_function
+
 import itertools
-import StringIO
-import random
 import os
-from pyasn1.codec.ber import encoder
-from pyasn1.codec.ber import decoder
-from asn1ate import parser, sema, pyasn1gen
+import random
+from io import StringIO
+
+from asn1ate import parser, pyasn1gen, sema
+from pyasn1.codec.ber import decoder, encoder
+
+from . import messages
 
 
 class InMemoryTrustDatabase(object):
@@ -22,9 +25,10 @@ class InMemoryTrustDatabase(object):
                 hit = line.find("value=0x")
 
                 if hit > -1:
-                    v, _ = decoder.decode(m["value"], asn1Spec=InMemoryTrustDatabase.SYSTEMS[m["format"]]["trust"]())
+                    spec = InMemoryTrustDatabase.SYSTEMS[m["format"]]["trust"]()
+                    value, _ = decoder.decode(m["value"], asn1Spec=spec)
                     buff.write(line[:hit + 6])
-                    buff.write(v.prettyPrint())
+                    buff.write(value.prettyPrint())
                 else:
                     buff.write(line)
 
@@ -85,7 +89,6 @@ class InMemoryTrustDatabase(object):
 
 
 class QtmDb(InMemoryTrustDatabase):
-
     def __init__(self):
         schema = ("ValueFormat DEFINITIONS ::= BEGIN "
                   "ValueFormat ::= ENUMERATED { "
@@ -98,15 +101,15 @@ class QtmDb(InMemoryTrustDatabase):
         self.TRUST_DB = [self.create_trust(
             target, service, self.trust_time_generator.next(),
             self.TrustClass(self.values_generator.next()[0]))
-            for target in self.USERS
-            for service in self.SERVICES]
+                         for target in self.USERS
+                         for service in self.SERVICES]
 
         self.ASSESSMENT_DB = [self.create_assessment(
             source, target, service, self.assess_time_generator.next(),
             self.AssessmentClass(self.values_generator.next()[0]))
-            for source in self.USERS
-            for target in self.USERS
-            for service in self.SERVICES if source != target]
+                              for source in self.USERS
+                              for target in self.USERS
+                              for service in self.SERVICES if source != target]
 
 
 class SLDb(InMemoryTrustDatabase):
@@ -132,12 +135,12 @@ class SLDb(InMemoryTrustDatabase):
 
         self.TRUST_DB = [self.create_trust(
             target, service, next(self.trust_time_generator), next(self.values_generator()))
-            for target in self.USERS
-            for service in self.SERVICES]
+                         for target in self.USERS
+                         for service in self.SERVICES]
 
         self.ASSESSMENT_DB = [self.create_assessment(
             source, target, service, next(self.assess_time_generator),
             next(self.values_generator()))
-            for source in self.USERS
-            for target in self.USERS
-            for service in self.SERVICES if source != target]
+                              for source in self.USERS
+                              for target in self.USERS
+                              for service in self.SERVICES if source != target]

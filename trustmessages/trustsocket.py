@@ -1,8 +1,10 @@
+from __future__ import absolute_import, print_function
+
+import multiprocessing
+import Queue
 import select
 import socket
-import Queue
 import threading
-import multiprocessing
 
 
 class TrustSocket(object):
@@ -28,6 +30,7 @@ class TrustSocket(object):
         self._in_socks = []
         self._out_socks = []
         self._out_queues = {}
+        self._worker = None
 
     def connect(self, address, port):
         """Connect to given address and port.
@@ -48,6 +51,7 @@ class TrustSocket(object):
         self._sink.send([address, port, "send", payload])
 
     def start(self):
+        """Start the event loop."""
         self._worker = threading.Thread(target=self._server_loop)
         self._worker.daemon = True
         self._worker.start()
@@ -55,7 +59,8 @@ class TrustSocket(object):
     def _server_loop(self):
         self._server_sock.listen(5)
 
-        print(" -- LISTENING (%s, %d) --" % (self._address if self._address else "*", self._port))
+        print(" -- LISTENING (%s, %d) --" %
+              (self._address if self._address else "*", self._port))
 
         self._in_socks.append(self._server_sock)
         self._in_socks.append(self._source)
@@ -91,7 +96,8 @@ class TrustSocket(object):
     def _handle_pipe(self, address, port, command, payload):
         if command == "connect":
             if self._find_socket(address, port):
-                print("Already connected to (%s, %d), skipping" % (address, port))
+                print("Already connected to (%s, %d), skipping" %
+                      (address, port))
                 return
 
             new_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -119,7 +125,8 @@ class TrustSocket(object):
             if sock not in self._out_socks:
                 self._out_socks.append(sock)
         else:
-            print("Unknown command: %s %d %s %s" % (address, port, command, payload))
+            print("Unknown command: %s %d %s %s" %
+                  (address, port, command, payload))
 
     def _find_socket(self, address, port):
         """Returns a reference to a socket for given address and port,

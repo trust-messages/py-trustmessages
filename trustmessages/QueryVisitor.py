@@ -1,5 +1,8 @@
-from antlr4 import *
-from messages import *
+from __future__ import absolute_import
+
+from antlr4 import ParseTreeVisitor
+
+from .messages import Comparison, Logical, Query, Value
 
 
 class QueryVisitor(ParseTreeVisitor):

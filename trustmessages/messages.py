@@ -74,7 +74,7 @@ class Logical(univ.Sequence):
 class Query(univ.Choice):
     pass
 
-for _ in xrange(10):
+for _ in range(10):
     Logical.tagSet = univ.Sequence.tagSet.tagImplicitly(tag.Tag(tag.tagClassApplication, tag.tagFormatConstructed, 5))
     Logical.componentType = namedtype.NamedTypes(
         namedtype.NamedType('op', univ.Enumerated(namedValues=namedval.NamedValues(('and', 0), ('or', 1)))),

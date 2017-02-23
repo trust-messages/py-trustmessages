@@ -1,9 +1,13 @@
-from QueryLexer import QueryLexer
-from QueryParser import QueryParser
-from QueryVisitor import QueryVisitor
-import antlr4
-import os
+from __future__ import absolute_import
+
 import itertools
+import os
+
+import antlr4
+
+from .QueryLexer import QueryLexer
+from .QueryParser import QueryParser
+from .QueryVisitor import QueryVisitor
 
 
 def create_query(text):
@@ -114,6 +118,6 @@ def create_mongo(query):
             return {field: {"$gte": value}}
 
 
-def pp(m):
+def pp(message):
     """Removes empty lines from prettyPrint()"""
-    return os.linesep.join(itertools.ifilter(None, m.prettyPrint().splitlines()))
+    return os.linesep.join(itertools.ifilter(None, message.prettyPrint().splitlines()))
