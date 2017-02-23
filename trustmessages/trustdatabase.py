@@ -3,12 +3,17 @@ from __future__ import absolute_import, print_function
 import itertools
 import os
 import random
-from io import StringIO
+import sys
 
 from asn1ate import parser, pyasn1gen, sema
 from pyasn1.codec.ber import decoder, encoder
 
 from . import messages
+
+if sys.version_info.major == 3:
+    from io import StringIO as BytesIO
+else:
+    from io import BytesIO
 
 
 class InMemoryTrustDatabase(object):
@@ -18,14 +23,15 @@ class InMemoryTrustDatabase(object):
     def pp(m):
         """Nicer prettyPrint() for values"""
 
-        buff = StringIO.StringIO()
+        buff = BytesIO()
 
         for line in m.prettyPrint().splitlines():
             if line != "":
                 hit = line.find("value=0x")
 
                 if hit > -1:
-                    spec = InMemoryTrustDatabase.SYSTEMS[m["format"]]["trust"]()
+                    spec = InMemoryTrustDatabase.SYSTEMS[
+                        m["format"]]["trust"]()
                     value, _ = decoder.decode(m["value"], asn1Spec=spec)
                     buff.write(line[:hit + 6])
                     buff.write(value.prettyPrint())
@@ -39,12 +45,12 @@ class InMemoryTrustDatabase(object):
     def _define_value_class(self, schema):
         _parse_tree = parser.parse_asn1(schema)
         _modules = sema.build_semantic_model(_parse_tree)
-        _clazz_stream = StringIO.StringIO()
+        _clazz_stream = BytesIO()
         pyasn1gen.generate_pyasn1(_modules[0], _clazz_stream)
         _clazz = _clazz_stream.getvalue()
         _clazz_stream.close()
-        exec(_clazz)
-        return ValueFormat
+        exec(_clazz, locals())
+        return locals()["ValueFormat"]
 
     def __init__(self, tms, assessment_schema, trust_schema=None):
         self.USERS = ["alice", "bob", "charlie", "david", "eve"]
@@ -68,7 +74,8 @@ class InMemoryTrustDatabase(object):
         else:
             self.TrustClass = self._define_value_class(trust_schema)
 
-        self.SYSTEMS[tms] = {"assessment": self.AssessmentClass, "trust": self.TrustClass}
+        self.SYSTEMS[tms] = {
+            "assessment": self.AssessmentClass, "trust": self.TrustClass}
 
     def create_trust(self, target, service, date, value):
         t = messages.Trust()
@@ -89,6 +96,7 @@ class InMemoryTrustDatabase(object):
 
 
 class QtmDb(InMemoryTrustDatabase):
+
     def __init__(self):
         schema = ("ValueFormat DEFINITIONS ::= BEGIN "
                   "ValueFormat ::= ENUMERATED { "
@@ -99,14 +107,14 @@ class QtmDb(InMemoryTrustDatabase):
         self.values_generator = itertools.cycle(self.TrustClass().getNamedValues())
 
         self.TRUST_DB = [self.create_trust(
-            target, service, self.trust_time_generator.next(),
-            self.TrustClass(self.values_generator.next()[0]))
+            target, service, next(self.trust_time_generator),
+            self.TrustClass(next(self.values_generator)[0]))
                          for target in self.USERS
                          for service in self.SERVICES]
 
         self.ASSESSMENT_DB = [self.create_assessment(
-            source, target, service, self.assess_time_generator.next(),
-            self.AssessmentClass(self.values_generator.next()[0]))
+            source, target, service, next(self.assess_time_generator),
+            self.AssessmentClass(next(self.values_generator)[0]))
                               for source in self.USERS
                               for target in self.USERS
                               for service in self.SERVICES if source != target]

@@ -1,10 +1,11 @@
 from __future__ import absolute_import, print_function
 
 import multiprocessing
-import Queue
 import select
 import socket
 import threading
+
+import queue
 
 
 class TrustSocket(object):
@@ -105,7 +106,7 @@ class TrustSocket(object):
             new_sock.setblocking(0)
 
             self._in_socks.append(new_sock)
-            self._out_queues[new_sock] = Queue.Queue()
+            self._out_queues[new_sock] = queue.Queue()
         elif command == "disconnect":
             sock = self._find_socket(address, port)
 
@@ -145,7 +146,7 @@ class TrustSocket(object):
         connection.setblocking(0)
 
         self._in_socks.append(connection)
-        self._out_queues[connection] = Queue.Queue()
+        self._out_queues[connection] = queue.Queue()
 
     def _handle_disconnect(self, s):
         """Disconects given socket """
@@ -166,7 +167,7 @@ class TrustSocket(object):
     def _flush_to_socket(self, s):
         try:
             next_msg = self._out_queues[s].get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             self._out_socks.remove(s)
         else:
             print("-> %s [%dB]" % (s.getpeername(), len(next_msg)))

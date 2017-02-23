@@ -1,7 +1,7 @@
 from __future__ import absolute_import, print_function
 
 import base64
-import itertools
+from itertools import cycle
 import unittest
 
 from pyasn1.codec.ber import decoder, encoder
@@ -14,10 +14,10 @@ from .. import (Assessment, AssessmentRequest, AssessmentResponse, Comparison,
 
 
 class AbstractTests(unittest.TestCase):
-    users = itertools.cycle(["a@x.com", "b@x.com", "c@x.com"])
-    services = itertools.cycle(["buyer", "seller", "letter", "renter"])
-    quantitative = itertools.cycle(xrange(1, 6))
-    qualitative = itertools.cycle(["distrust", "neutral", "trust"])
+    users = cycle(["a@x.com", "b@x.com", "c@x.com"])
+    services = cycle(["buyer", "seller", "letter", "renter"])
+    quantitative = cycle(range(1, 6))
+    qualitative = cycle(["distrust", "neutral", "trust"])
     qtm = QtmDb()
 
     def encode(self, m):
@@ -57,8 +57,7 @@ class TestMessages(AbstractTests):
 
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
         assert(r.prettyPrint() == decoded.prettyPrint())
-        assert(decoder.decode(decoded["value"],
-                              asn1Spec=char.PrintableString())[0] == val)
+        assert(str(decoder.decode(decoded["value"], asn1Spec=char.PrintableString())[0]) == val)
 
     def test_assessment_request(self):
         a_req = AssessmentRequest()
@@ -79,7 +78,7 @@ class TestMessages(AbstractTests):
         a_res["rid"] = 1
         a_res["response"] = univ.SequenceOf(componentType=Assessment())
 
-        for i in xrange(2):
+        for i in range(2):
             a = Assessment()
             a["source"] = next(self.users)
             a["target"] = next(self.users)
@@ -112,7 +111,7 @@ class TestMessages(AbstractTests):
         t_res["rid"] = 70000
         t_res["response"] = univ.SequenceOf(componentType=Trust())
 
-        for i in xrange(2):
+        for i in range(2):
             t = Trust()
             t["target"] = next(self.users)
             t["service"] = next(self.services)
@@ -165,7 +164,7 @@ class TestQueries(AbstractTests):
         sq1["cmp"]["value"]["date"] = 50
 
         assert(all(t["date"] < 50
-                   for t in itertools.ifilter(trustutils.create_predicate(sq1), self.qtm.ASSESSMENT_DB)))
+                   for t in filter(trustutils.create_predicate(sq1), self.qtm.ASSESSMENT_DB)))
 
     def test_simple_query2(self):
         sq2 = Query()
@@ -182,8 +181,8 @@ class TestQueries(AbstractTests):
         sq2["log"]["r"]["cmp"]["value"] = Value()
         sq2["log"]["r"]["cmp"]["value"]["target"] = "bob"
 
-        assert(all(t["source"] == "alice" and t["target"] == "bob"
-                   for t in itertools.ifilter(trustutils.create_predicate(sq2), self.qtm.ASSESSMENT_DB)))
+        assert(all(str(t["source"]) == "alice" and str(t["target"]) == "bob"
+                   for t in filter(trustutils.create_predicate(sq2), self.qtm.ASSESSMENT_DB)))
 
     def test_simple_query3(self):
         q = Query()
@@ -208,8 +207,8 @@ class TestQueries(AbstractTests):
         q["log"]["r"]["log"]["r"]["cmp"]["value"] = Value()
         q["log"]["r"]["log"]["r"]["cmp"]["value"]["source"] = "david"
 
-        assert(all(t["service"] == "seller" and (t["source"] == "charlie" or t["source"] == "david")
-                   for t in itertools.ifilter(trustutils.create_predicate(q), self.qtm.ASSESSMENT_DB)))
+        assert(all(str(t["service"]) == "seller" and (str(t["source"]) == "charlie" or str(t["source"]) == "david")
+                   for t in filter(trustutils.create_predicate(q), self.qtm.ASSESSMENT_DB)))
         substrate = encoder.encode(q)
         d, e = decoder.decode(substrate, asn1Spec=Query())
         assert(d == q)

@@ -1,3 +1,4 @@
+import sys
 from setuptools import setup
 
 
@@ -13,7 +14,12 @@ setup(
     author=AUTHOR,
     author_email=EMAIL,
     packages=['trustmessages'],
-    install_requires=["pyasn1", "antlr4-python2-runtime", "asn1ate"],
+    install_requires=[
+        "pyasn1",
+        "antlr4-python%d-runtime" % sys.version_info.major,
+        "asn1ate",
+        "future"
+    ],
     test_suite='nose.collector',
     tests_require=['nose'],
     include_package_data=True,

@@ -3,8 +3,8 @@ Example TMS.
 """
 from __future__ import absolute_import, print_function
 
-import itertools
 import sys
+from builtins import input
 from functools import partial
 from random import randint
 
@@ -12,8 +12,9 @@ from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import univ
 
 from trustmessages import trustsocket
-from trustmessages.messages import (Assessment, AssessmentRequest, AssessmentResponse,
-                                    FormatRequest, FormatResponse, Message, Trust,
+from trustmessages.messages import (Assessment, AssessmentRequest,
+                                    AssessmentResponse, FormatRequest,
+                                    FormatResponse, Message, Trust,
                                     TrustRequest, TrustResponse)
 from trustmessages.trustdatabase import QtmDb, SLDb
 from trustmessages.trustutils import create_predicate, create_query, pp
@@ -22,7 +23,7 @@ from trustmessages.trustutils import create_predicate, create_query, pp
 def simple_tms(ts, address, port, data, db, provider):
     try:
         message, remaining = decoder.decode(data, asn1Spec=Message())
-        assert remaining == "", "Message did not fully decode."
+        assert remaining == b"", "Message did not fully decode: %s" % remaining
         component = message.getComponent()
         type_ = message.getName()
 
@@ -31,7 +32,7 @@ def simple_tms(ts, address, port, data, db, provider):
         if type_ == "assessment-request":
             print(pp(component))
             predicate = create_predicate(component["query"])
-            hits = itertools.ifilter(predicate, db.ASSESSMENT_DB)
+            hits = filter(predicate, db.ASSESSMENT_DB)
             reply = AssessmentResponse()
             reply["provider"] = provider
             reply["format"] = db.TMS
@@ -44,7 +45,7 @@ def simple_tms(ts, address, port, data, db, provider):
         elif type_ == "trust-request":
             print(pp(component))
             predicate = create_predicate(component["query"])
-            hits = itertools.ifilter(predicate, db.TRUST_DB)
+            hits = filter(predicate, db.TRUST_DB)
             reply = TrustResponse()
             reply["provider"] = provider
             reply["format"] = db.TMS
@@ -76,7 +77,7 @@ def main(address, port, database, provider):
 
     while True:
         try:
-            user_input = raw_input().strip()
+            user_input = input().strip()
             split = user_input.split(" ", 3)
 
             if len(split) == 3:

@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import itertools
 import os
 
 import antlr4
@@ -120,4 +119,4 @@ def create_mongo(query):
 
 def pp(message):
     """Removes empty lines from prettyPrint()"""
-    return os.linesep.join(itertools.ifilter(None, message.prettyPrint().splitlines()))
+    return os.linesep.join(filter(None, message.prettyPrint().splitlines()))
