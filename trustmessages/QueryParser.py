@@ -1,4 +1,4 @@
-# Generated from Query.g4 by ANTLR 4.5.3
+# Generated from Query.g4 by ANTLR 4.6
 # encoding: utf-8
 from __future__ import print_function
 from antlr4 import *
@@ -50,7 +50,7 @@ class QueryParser ( Parser ):
 
     def __init__(self, input):
         super(QueryParser, self).__init__(input)
-        self.checkVersion("4.5.3")
+        self.checkVersion("4.6")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -84,6 +84,14 @@ class QueryParser ( Parser ):
         def VALUE(self):
             return self.getToken(QueryParser.VALUE, 0)
 
+        def enterRule(self, listener):
+            if hasattr(listener, "enterComparison"):
+                listener.enterComparison(self)
+
+        def exitRule(self, listener):
+            if hasattr(listener, "exitComparison"):
+                listener.exitComparison(self)
+
         def accept(self, visitor):
             if hasattr(visitor, "visitComparison"):
                 return visitor.visitComparison(self)
@@ -103,6 +111,14 @@ class QueryParser ( Parser ):
             else:
                 return self.getTypedRuleContext(QueryParser.ExprContext,i)
 
+
+        def enterRule(self, listener):
+            if hasattr(listener, "enterOr"):
+                listener.enterOr(self)
+
+        def exitRule(self, listener):
+            if hasattr(listener, "exitOr"):
+                listener.exitOr(self)
 
         def accept(self, visitor):
             if hasattr(visitor, "visitOr"):
@@ -124,6 +140,14 @@ class QueryParser ( Parser ):
                 return self.getTypedRuleContext(QueryParser.ExprContext,i)
 
 
+        def enterRule(self, listener):
+            if hasattr(listener, "enterAnd"):
+                listener.enterAnd(self)
+
+        def exitRule(self, listener):
+            if hasattr(listener, "exitAnd"):
+                listener.exitAnd(self)
+
         def accept(self, visitor):
             if hasattr(visitor, "visitAnd"):
                 return visitor.visitAnd(self)
@@ -140,6 +164,14 @@ class QueryParser ( Parser ):
         def expr(self):
             return self.getTypedRuleContext(QueryParser.ExprContext,0)
 
+
+        def enterRule(self, listener):
+            if hasattr(listener, "enterParenthesis"):
+                listener.enterParenthesis(self)
+
+        def exitRule(self, listener):
+            if hasattr(listener, "exitParenthesis"):
+                listener.exitParenthesis(self)
 
         def accept(self, visitor):
             if hasattr(visitor, "visitParenthesis"):
@@ -159,6 +191,7 @@ class QueryParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 10
+            self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [QueryParser.FIELD]:
                 localctx = QueryParser.ComparisonContext(self, localctx)
@@ -171,7 +204,7 @@ class QueryParser ( Parser ):
                 self.match(QueryParser.OP)
                 self.state = 5
                 self.match(QueryParser.VALUE)
-
+                pass
             elif token in [QueryParser.T__0]:
                 localctx = QueryParser.ParenthesisContext(self, localctx)
                 self._ctx = localctx
@@ -182,7 +215,7 @@ class QueryParser ( Parser ):
                 self.expr(0)
                 self.state = 8
                 self.match(QueryParser.T__1)
-
+                pass
             else:
                 raise NoViableAltException(self)
 
@@ -196,7 +229,7 @@ class QueryParser ( Parser ):
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
                     self.state = 18
-                    self._errHandler.sync(self);
+                    self._errHandler.sync(self)
                     la_ = self._interp.adaptivePredict(self._input,1,self._ctx)
                     if la_ == 1:
                         localctx = QueryParser.AndContext(self, QueryParser.ExprContext(self, _parentctx, _parentState))
