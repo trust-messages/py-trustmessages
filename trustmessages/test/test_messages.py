@@ -7,10 +7,9 @@ import unittest
 from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import char, univ
 
-from .. import (Assessment, AssessmentRequest, AssessmentResponse, Comparison,
-                Entity, Fault, Format, FormatRequest, FormatResponse, Logical,
-                Message, QtmDb, Query, Trust, TrustRequest, TrustResponse,
-                Value, trustutils)
+from .. import (Data, DataRequest, DataResponse, Comparison, Entity,
+                Fault, Format, FormatRequest, FormatResponse, Logical,
+                Message, QtmDb, Query, Value, trustutils)
 
 
 class AbstractTests(unittest.TestCase):
@@ -33,21 +32,21 @@ class AbstractTests(unittest.TestCase):
 class TestMessages(AbstractTests):
 
     def test_assessment_quantitative(self):
-        r = Assessment()
+        r = Data()
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
         r["date"] = 100
         val = next(self.quantitative)
         r["value"] = encoder.encode(univ.Integer(val))
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
 
         assert(r.prettyPrint() == decoded.prettyPrint())
         assert(decoder.decode(decoded["value"],
                               asn1Spec=univ.Integer())[0] == val)
 
     def test_assessment_qualitative(self):
-        r = Assessment()
+        r = Data()
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
@@ -55,13 +54,14 @@ class TestMessages(AbstractTests):
         val = next(self.qualitative)
         r["value"] = encoder.encode(char.PrintableString(val))
 
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
         assert(r.prettyPrint() == decoded.prettyPrint())
         assert(str(decoder.decode(decoded["value"], asn1Spec=char.PrintableString())[0]) == val)
 
     def test_assessment_request(self):
-        a_req = AssessmentRequest()
+        a_req = DataRequest()
         a_req["rid"] = 1
+        a_req["type"] = "assessment"
         sq = Query()
         sq["cmp"] = Comparison()
         sq["cmp"]["op"] = "ge"
@@ -72,14 +72,15 @@ class TestMessages(AbstractTests):
         assert(a_req.prettyPrint() == decoded.getComponent().prettyPrint())
 
     def test_assessment_response(self):
-        a_res = AssessmentResponse()
-        a_res["provider"] = Entity("ebay")
+        a_res = DataResponse()
+        a_res["provider"] = "ebay"
+        a_res["type"] = "assessment"
         a_res["format"] = Format((1, 1, 1))
         a_res["rid"] = 1
-        a_res["response"] = univ.SequenceOf(componentType=Assessment())
+        a_res["response"] = univ.SequenceOf(componentType=Data())
 
         for i in range(2):
-            a = Assessment()
+            a = Data()
             a["source"] = next(self.users)
             a["target"] = next(self.users)
             a["service"] = next(self.services)
@@ -92,8 +93,9 @@ class TestMessages(AbstractTests):
         assert(data.getComponent().prettyPrint() == a_res.prettyPrint())
 
     def test_trust_request(self):
-        t_req = TrustRequest()
+        t_req = DataRequest()
         t_req["rid"] = 5000
+        t_req["type"] = "trust"
         sq = Query()
         sq["cmp"] = Comparison()
         sq["cmp"]["op"] = "ge"
@@ -105,14 +107,16 @@ class TestMessages(AbstractTests):
         assert(data.getComponent().prettyPrint() == t_req.prettyPrint())
 
     def test_trust_response(self):
-        t_res = TrustResponse()
-        t_res["provider"] = Entity("ebay")
+        t_res = DataResponse()
+        t_res["provider"] = "ebay"
         t_res["format"] = univ.ObjectIdentifier((1, 1, 1))
         t_res["rid"] = 70000
-        t_res["response"] = univ.SequenceOf(componentType=Trust())
+        t_res["type"] = "trust"
+        t_res["response"] = univ.SequenceOf(componentType=Data())
 
         for i in range(2):
-            t = Trust()
+            t = Data()
+            t["source"] = next(self.users)
             t["target"] = next(self.users)
             t["service"] = next(self.services)
             t["date"] = 2000
@@ -164,7 +168,7 @@ class TestQueries(AbstractTests):
         sq1["cmp"]["value"]["date"] = 50
 
         assert(all(t["date"] < 50
-                   for t in filter(trustutils.create_predicate(sq1), self.qtm.ASSESSMENT_DB)))
+                   for t in filter(trustutils.create_predicate(sq1), self.qtm.assessment_db)))
 
     def test_simple_query2(self):
         sq2 = Query()
@@ -182,7 +186,7 @@ class TestQueries(AbstractTests):
         sq2["log"]["r"]["cmp"]["value"]["target"] = "bob"
 
         assert(all(str(t["source"]) == "alice" and str(t["target"]) == "bob"
-                   for t in filter(trustutils.create_predicate(sq2), self.qtm.ASSESSMENT_DB)))
+                   for t in filter(trustutils.create_predicate(sq2), self.qtm.assessment_db)))
 
     def test_simple_query3(self):
         q = Query()
@@ -208,7 +212,7 @@ class TestQueries(AbstractTests):
         q["log"]["r"]["log"]["r"]["cmp"]["value"]["source"] = "david"
 
         assert(all(str(t["service"]) == "seller" and (str(t["source"]) == "charlie" or str(t["source"]) == "david")
-                   for t in filter(trustutils.create_predicate(q), self.qtm.ASSESSMENT_DB)))
+                   for t in filter(trustutils.create_predicate(q), self.qtm.assessment_db)))
         substrate = encoder.encode(q)
         d, e = decoder.decode(substrate, asn1Spec=Query())
         assert(d == q)
@@ -218,19 +222,26 @@ class TestQueries(AbstractTests):
 class TestPrinting(AbstractTests):
 
     def test_assessment_quantitative(self):
-        r = Assessment()
+        r = Data()
         r["source"] = "djelenc@gmail.com"
         r["target"] = "david.jelenc@fri.uni-lj.si"
         r["service"] = "seller"
         r["date"] = 1
         r["value"] = encoder.encode(self.qtm.AssessmentClass("very-good"))
 
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Assessment())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
         assert(r.prettyPrint() == decoded.prettyPrint())
         v, _ = decoder.decode(
             decoded["value"], asn1Spec=self.qtm.AssessmentClass())
 
     def test_decode_java_query(self):
-        bytez = base64.b64decode("ZlQCAQFlTwoBAGUuCgEAZAoKAQBABWRhdmlkZR0KAQFkC" \
-        "woBAEMGc2VsbGVyZAsKAQBDBmxldHRlcmUaCgEBZAkKAQBBBGJhbHVkCgoBAEEFYWxla3M=")
+        bytez = base64.b64decode(b"Y4IBBRMHc29tZXRtcwYCKQEKAQECAQEwge9kOhMDY" \
+                                 b"m9iEwVhbGljZRMGc2VsbGVyAgF0MCEJCYDLBeIczX" \
+                                 b"+yvwkJgMcctowL4EVJCQmAzQYUnpxwkjtkOhMDYm9" \
+                                 b"iEwVhbGljZRMGbGV0dGVyAgF1MCEJCYDLH1N4dOm8" \
+                                 b"twkJgMsSbilzxAGFCQnAzQRwaHorb49kOhMDYm9iE" \
+                                 b"wVhbGljZRMGcmVudGVyAgF2MCEJCYDLFNENqpjKOw" \
+                                 b"kJgMoauqtkEgqPCQnAygRcxrlDnwVkORMDYm9iEwV" \
+                                 b"hbGljZRMFYnV5ZXICAXcwIQkJgM0HzNy1KNkzCQmA" \
+                                 b"zgLy3GwqO1cJCcDNBbKVjX1P4Q==")
         m, _ = decoder.decode(bytez, asn1Spec=Message())

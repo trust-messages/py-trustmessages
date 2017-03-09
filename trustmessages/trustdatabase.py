@@ -1,3 +1,4 @@
+"""Examples of two trust management systems: QTM and SL"""
 from __future__ import absolute_import, print_function
 
 import itertools
@@ -17,7 +18,10 @@ else:
 
 
 class InMemoryTrustDatabase(object):
+    """An abstract trust database that keeps values in memory."""
     SYSTEMS = {}
+    USERS = ["alice", "bob", "charlie", "david", "eve"]
+    SERVICES = ["buyer", "seller", "letter", "renter"]
 
     @staticmethod
     def pp(m):
@@ -53,14 +57,12 @@ class InMemoryTrustDatabase(object):
         return locals()["ValueFormat"]
 
     def __init__(self, tms, assessment_schema, trust_schema=None):
-        self.USERS = ["alice", "bob", "charlie", "david", "eve"]
-        self.SERVICES = ["buyer", "seller", "letter", "renter"]
-        self.TRUST_DB = []
-        self.ASSESSMENT_DB = []
+        self.trust_db = []
+        self.assessment_db = []
 
-        self.TMS = tms
-        self.ASSESSMENT_SCHEMA = assessment_schema
-        self.TRUST_SCHEMA = trust_schema if trust_schema is not None else assessment_schema
+        self.tms = tms
+        self.assessment_schema = assessment_schema
+        self.trust_schema = trust_schema if trust_schema is not None else assessment_schema
 
         # time generators
         self.assess_time_generator = itertools.count(0)
@@ -77,25 +79,19 @@ class InMemoryTrustDatabase(object):
         self.SYSTEMS[tms] = {
             "assessment": self.AssessmentClass, "trust": self.TrustClass}
 
-    def create_trust(self, target, service, date, value):
-        t = messages.Trust()
-        t["target"] = target
-        t["service"] = service
-        t["date"] = date
-        t["value"] = encoder.encode(value)
-        return t
-
-    def create_assessment(self, source, target, service, date, value):
-        a = messages.Assessment()
-        a["source"] = source
-        a["target"] = target
-        a["service"] = service
-        a["date"] = date
-        a["value"] = encoder.encode(value)
-        return a
+def create_data(source, target, service, date, value):
+    """Creates a data instance"""
+    data = messages.Data()
+    data["source"] = source
+    data["target"] = target
+    data["service"] = service
+    data["date"] = date
+    data["value"] = encoder.encode(value)
+    return data
 
 
 class QtmDb(InMemoryTrustDatabase):
+    """Example trust database: Qualitative Trust Model"""
 
     def __init__(self):
         schema = ("ValueFormat DEFINITIONS ::= BEGIN "
@@ -106,13 +102,14 @@ class QtmDb(InMemoryTrustDatabase):
 
         self.values_generator = itertools.cycle(self.TrustClass().getNamedValues())
 
-        self.TRUST_DB = [self.create_trust(
-            target, service, next(self.trust_time_generator),
-            self.TrustClass(next(self.values_generator)[0]))
+        self.trust_db = [create_data(
+            source, target, service, next(self.trust_time_generator),
+            self.AssessmentClass(next(self.values_generator)[0]))
+                         for source in self.USERS
                          for target in self.USERS
-                         for service in self.SERVICES]
+                         for service in self.SERVICES if source != target]
 
-        self.ASSESSMENT_DB = [self.create_assessment(
+        self.assessment_db = [create_data(
             source, target, service, next(self.assess_time_generator),
             self.AssessmentClass(next(self.values_generator)[0]))
                               for source in self.USERS
@@ -121,15 +118,16 @@ class QtmDb(InMemoryTrustDatabase):
 
 
 class SLDb(InMemoryTrustDatabase):
+    """An example TMS: Subjective Logic."""
 
     def values_generator(self):
+        """Generates belief, disbelief and uncertainty (b, d, u) triplets"""
         while True:
-            v = self.TrustClass()
-            v["b"] = random.uniform(0, 1)
-            v["d"] = random.uniform(0, 1.0 - v["b"])
-            v["u"] = 1.0 - v["b"] - v["d"]
-
-            yield v
+            value = self.TrustClass()
+            value["b"] = random.uniform(0, 1)
+            value["d"] = random.uniform(0, 1.0 - value["b"])
+            value["u"] = 1.0 - value["b"] - value["d"]
+            yield value
 
     def __init__(self):
         schema = ("ValueFormat DEFINITIONS ::= BEGIN "
@@ -141,12 +139,14 @@ class SLDb(InMemoryTrustDatabase):
             (v["b"], v["d"], v["u"]) if None not in v else (0, 0, 0))
         self.TrustClass.prettyPrint = self.AssessmentClass.prettyPrint
 
-        self.TRUST_DB = [self.create_trust(
-            target, service, next(self.trust_time_generator), next(self.values_generator()))
+        self.trust_db = [create_data(
+            source, target, service, next(self.trust_time_generator),
+            next(self.values_generator()))
+                         for source in self.USERS
                          for target in self.USERS
-                         for service in self.SERVICES]
+                         for service in self.SERVICES if source != target]
 
-        self.ASSESSMENT_DB = [self.create_assessment(
+        self.assessment_db = [create_data(
             source, target, service, next(self.assess_time_generator),
             next(self.values_generator()))
                               for source in self.USERS

@@ -12,15 +12,13 @@ from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import univ
 
 from trustmessages import trustsocket
-from trustmessages.messages import (Assessment, AssessmentRequest,
-                                    AssessmentResponse, FormatRequest,
-                                    FormatResponse, Message, Trust,
-                                    TrustRequest, TrustResponse)
+from trustmessages.messages import (Data, DataRequest, DataResponse,
+                                    FormatRequest, FormatResponse, Message)
 from trustmessages.trustdatabase import QtmDb, SLDb
 from trustmessages.trustutils import create_predicate, create_query, pp
 
 
-def simple_tms(ts, address, port, data, db, provider):
+def simple_tms(trust_socket, address, port, data, db, provider):
     try:
         message, remaining = decoder.decode(data, asn1Spec=Message())
         assert remaining == b"", "Message did not fully decode: %s" % remaining
@@ -29,51 +27,40 @@ def simple_tms(ts, address, port, data, db, provider):
 
         print("(%s, %d): %s [size=%dB]" % (address, port, type_, len(data)))
 
-        if type_ == "assessment-request":
+        if type_ == "data-request":
             print(pp(component))
             predicate = create_predicate(component["query"])
-            hits = filter(predicate, db.ASSESSMENT_DB)
-            reply = AssessmentResponse()
+            hits = filter(predicate,
+                          db.trust_db if component["type"] == "trust" else db.assessment_db)
+            reply = DataResponse()
             reply["provider"] = provider
-            reply["format"] = db.TMS
+            reply["format"] = db.tms
             reply["rid"] = component["rid"]
-            reply["response"] = univ.SequenceOf(componentType=Assessment())
+            reply["type"] = component["type"]
+            reply["response"] = univ.SequenceOf(componentType=Data())
             reply["response"].setComponents(*hits)
-            ts.send(address, port, encoder.encode(reply))
-        elif type_ == "assessment-response":
-            print("%d hits: %s" % (len(component["response"]), pp(component)))
-        elif type_ == "trust-request":
-            print(pp(component))
-            predicate = create_predicate(component["query"])
-            hits = filter(predicate, db.TRUST_DB)
-            reply = TrustResponse()
-            reply["provider"] = provider
-            reply["format"] = db.TMS
-            reply["rid"] = component["rid"]
-            reply["response"] = univ.SequenceOf(componentType=Trust())
-            reply["response"].setComponents(*hits)
-            ts.send(address, port, encoder.encode(reply))
-        elif type_ == "trust-response":
+            trust_socket.send(address, port, encoder.encode(reply))
+        elif type_ == "data-response":
             print("%d hits: %s" % (len(component["response"]), pp(component)))
         elif type_ == "format-request":
             print(pp(component))
             reply = FormatResponse()
-            reply["assessment"] = db.TRUST_SCHEMA
-            reply["trust"] = db.ASSESSMENT_SCHEMA
-            reply["format"] = db.TMS
-            ts.send(address, port, encoder.encode(reply))
+            reply["assessment"] = db.trust_schema
+            reply["trust"] = db.assessment_schema
+            reply["format"] = db.tms
+            trust_socket.send(address, port, encoder.encode(reply))
         elif type_ == "format-response":
             print(component.prettyPrint())
-    except Exception as e:
+    except Exception as excp:
         print("(%s, %d): Error while parsing (size=%dB) [%s]: %s" % (
-            address, port, len(data), type(e), e))
+            address, port, len(data), type(excp), excp))
 
 
 def main(address, port, database, provider):
-    handler = partial(simple_tms, db=QtmDb() if database ==
-                      'qtm' else SLDb(), provider=provider)
-    ts = trustsocket.TrustSocket(address, port, handler)
-    ts.start()
+    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb(),
+                      provider=provider)
+    trust_socket = trustsocket.TrustSocket(address, port, handler)
+    trust_socket.start()
 
     while True:
         try:
@@ -82,37 +69,34 @@ def main(address, port, database, provider):
 
             if len(split) == 3:
                 address, port, verb = split
-                q = None
+                query = None
             elif len(split) > 3:
-                address, port, verb, q = split
+                address, port, verb, query = split
             else:
                 print("Invalid command: %s" % user_input)
                 continue
             port = int(port)
 
             if verb == "connect":
-                ts.connect(address, port)
+                trust_socket.connect(address, port)
             elif verb == "disconnect":
-                ts.disconnect(address, port)
-            elif verb == "areq":
-                req = AssessmentRequest()
+                trust_socket.disconnect(address, port)
+            elif verb in ("areq", "treq"):
+                req = DataRequest()
                 req["rid"] = randint(-32700, 32700)
-                req["query"] = create_query(q)
-                ts.send(address, port, encoder.encode(req))
-            elif verb == "treq":
-                req = TrustRequest()
-                req["rid"] = randint(-32700, 32700)
-                req["query"] = create_query(q)
-                ts.send(address, port, encoder.encode(req))
+                req["type"] = "assessment" if verb == "areq" else "trust"
+                req["query"] = create_query(query)
+                trust_socket.send(address, port, encoder.encode(req))
             elif verb == "freq":
-                ts.send(address, port, encoder.encode(FormatRequest()))
+                trust_socket.send(
+                    address, port, encoder.encode(FormatRequest()))
             else:
                 print("Unknown verb: %s" % verb)
         except KeyboardInterrupt:
             print("Forcing shutdown.")
             break
-        except Exception as e:
-            print("Error (%s) %s" % (type(e), e))
+        except Exception as excp:
+            print("Error (%s): %s" % (type(excp), excp))
 
     print("Shutting down.")
 

@@ -1,13 +1,11 @@
 Messages DEFINITIONS ::= BEGIN
 
 Message ::= CHOICE {
-  assessment-request    AssessmentRequest,
-  assessment-response   AssessmentResponse,
-  trust-request         TrustRequest,
-  trust-response        TrustResponse,
-  format-request        FormatRequest,
-  format-response       FormatResponse,
-  fault                 Fault
+  data-request      DataRequest,
+  data-response     DataResponse,
+  format-request    FormatRequest,
+  format-response   FormatResponse,
+  fault             Fault
 }
 
 FormatRequest ::= [APPLICATION 0] IMPLICIT NULL
@@ -18,16 +16,26 @@ FormatResponse ::= [APPLICATION 1] IMPLICIT SEQUENCE {
   trust       PrintableString
 }
 
-TrustRequest ::= [APPLICATION 2] IMPLICIT SEQUENCE {
+DataRequest ::= [APPLICATION 2] IMPLICIT SEQUENCE {
   rid   INTEGER,
+  type  ENUMERATED { trust (0), assessment (1) },
   query Query
 }
 
-TrustResponse ::= [APPLICATION 3] IMPLICIT SEQUENCE {
+DataResponse ::= [APPLICATION 3] IMPLICIT SEQUENCE {
   provider  Entity,
   format    Format,
+  type      ENUMERATED { trust (0), assessment (1) },
   rid       INTEGER,
-  response  SEQUENCE OF Trust
+  response  SEQUENCE OF Data
+}
+
+Data ::= [APPLICATION 4] IMPLICIT SEQUENCE {
+  source  Entity,
+  target  Entity,
+  service Service,
+  date    BinaryTime,
+  value   ANY
 }
 
 Query ::= CHOICE {
@@ -35,12 +43,12 @@ Query ::= CHOICE {
   log Logical
 }
 
-Comparison ::= [APPLICATION 4] IMPLICIT SEQUENCE {
+Comparison ::= [APPLICATION 5] IMPLICIT SEQUENCE {
     op    ENUMERATED { eq (0), ne (1), lt (2), le (3), gt (4), ge (5) },
     value Value
 }
 
-Logical ::= [APPLICATION 5] IMPLICIT SEQUENCE {
+Logical ::= [APPLICATION 6] IMPLICIT SEQUENCE {
   op  ENUMERATED { and (0), or (1) },
   l   Query,
   r   Query
@@ -53,34 +61,7 @@ Value ::= CHOICE {
   service [APPLICATION 3] IMPLICIT Service
 }
 
-AssessmentRequest ::= [APPLICATION 6] IMPLICIT SEQUENCE {
-  rid INTEGER,
-  query Query
-}
-
-AssessmentResponse ::= [APPLICATION 7] IMPLICIT SEQUENCE {
-  provider  Entity,
-  format    Format,
-  rid       INTEGER,
-  response  SEQUENCE OF Assessment
-}
-
-Trust ::= [APPLICATION 8] IMPLICIT SEQUENCE {
-  target  Entity,
-  service Service,
-  date    BinaryTime,
-  value   ANY
-}
-
-Assessment ::= [APPLICATION 9] IMPLICIT SEQUENCE {
-  source  Entity,
-  target  Entity,
-  service Service,
-  date    BinaryTime,
-  value   ANY
-}
-
-Fault ::= [APPLICATION 10] IMPLICIT SEQUENCE {
+Fault ::= [APPLICATION 7] IMPLICIT SEQUENCE {
   value   ENUMERATED { invalid-parameters (0), internal-error (1) },
   message PrintableString
 }
