@@ -7,7 +7,7 @@ import unittest
 from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import char, univ
 
-from .. import (Data, DataRequest, DataResponse, Comparison, Entity,
+from .. import (Rating, DataRequest, DataResponse, Comparison, Entity,
                 Fault, Format, FormatRequest, FormatResponse, Logical,
                 Message, QtmDb, Query, Value, trustutils)
 
@@ -32,21 +32,21 @@ class AbstractTests(unittest.TestCase):
 class TestMessages(AbstractTests):
 
     def test_assessment_quantitative(self):
-        r = Data()
+        r = Rating()
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
         r["date"] = 100
         val = next(self.quantitative)
         r["value"] = encoder.encode(univ.Integer(val))
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Rating())
 
         assert(r.prettyPrint() == decoded.prettyPrint())
         assert(decoder.decode(decoded["value"],
                               asn1Spec=univ.Integer())[0] == val)
 
     def test_assessment_qualitative(self):
-        r = Data()
+        r = Rating()
         r["source"] = next(self.users)
         r["target"] = next(self.users)
         r["service"] = next(self.services)
@@ -54,7 +54,7 @@ class TestMessages(AbstractTests):
         val = next(self.qualitative)
         r["value"] = encoder.encode(char.PrintableString(val))
 
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Rating())
         assert(r.prettyPrint() == decoded.prettyPrint())
         assert(str(decoder.decode(decoded["value"], asn1Spec=char.PrintableString())[0]) == val)
 
@@ -77,10 +77,10 @@ class TestMessages(AbstractTests):
         a_res["type"] = "assessment"
         a_res["format"] = Format((1, 1, 1))
         a_res["rid"] = 1
-        a_res["response"] = univ.SequenceOf(componentType=Data())
+        a_res["response"] = univ.SequenceOf(componentType=Rating())
 
         for i in range(2):
-            a = Data()
+            a = Rating()
             a["source"] = next(self.users)
             a["target"] = next(self.users)
             a["service"] = next(self.services)
@@ -112,10 +112,10 @@ class TestMessages(AbstractTests):
         t_res["format"] = univ.ObjectIdentifier((1, 1, 1))
         t_res["rid"] = 70000
         t_res["type"] = "trust"
-        t_res["response"] = univ.SequenceOf(componentType=Data())
+        t_res["response"] = univ.SequenceOf(componentType=Rating())
 
         for i in range(2):
-            t = Data()
+            t = Rating()
             t["source"] = next(self.users)
             t["target"] = next(self.users)
             t["service"] = next(self.services)
@@ -222,14 +222,14 @@ class TestQueries(AbstractTests):
 class TestPrinting(AbstractTests):
 
     def test_assessment_quantitative(self):
-        r = Data()
+        r = Rating()
         r["source"] = "djelenc@gmail.com"
         r["target"] = "david.jelenc@fri.uni-lj.si"
         r["service"] = "seller"
         r["date"] = 1
         r["value"] = encoder.encode(self.qtm.AssessmentClass("very-good"))
 
-        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Data())
+        decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Rating())
         assert(r.prettyPrint() == decoded.prettyPrint())
         v, _ = decoder.decode(
             decoded["value"], asn1Spec=self.qtm.AssessmentClass())

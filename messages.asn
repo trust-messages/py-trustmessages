@@ -27,10 +27,10 @@ DataResponse ::= [APPLICATION 3] IMPLICIT SEQUENCE {
   format    Format,
   type      ENUMERATED { trust (0), assessment (1) },
   rid       INTEGER,
-  response  SEQUENCE OF Data
+  response  SEQUENCE OF Rating
 }
 
-Data ::= [APPLICATION 4] IMPLICIT SEQUENCE {
+Rating ::= [APPLICATION 4] IMPLICIT SEQUENCE {
   source  Entity,
   target  Entity,
   service Service,

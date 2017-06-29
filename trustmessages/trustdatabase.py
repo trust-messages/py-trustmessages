@@ -81,7 +81,7 @@ class InMemoryTrustDatabase(object):
 
 def create_data(source, target, service, date, value):
     """Creates a data instance"""
-    data = messages.Data()
+    data = messages.Rating()
     data["source"] = source
     data["target"] = target
     data["service"] = service
