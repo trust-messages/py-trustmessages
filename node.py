@@ -12,7 +12,7 @@ from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import univ
 
 from trustmessages import trustsocket
-from trustmessages.messages import (Data, DataRequest, DataResponse,
+from trustmessages.messages import (Rating, DataRequest, DataResponse,
                                     FormatRequest, FormatResponse, Message)
 from trustmessages.trustdatabase import QtmDb, SLDb
 from trustmessages.trustutils import create_predicate, create_query, pp
@@ -37,7 +37,7 @@ def simple_tms(trust_socket, address, port, data, db, provider):
             reply["format"] = db.tms
             reply["rid"] = component["rid"]
             reply["type"] = component["type"]
-            reply["response"] = univ.SequenceOf(componentType=Data())
+            reply["response"] = univ.SequenceOf(componentType=Rating())
             reply["response"].setComponents(*hits)
             trust_socket.send(address, port, encoder.encode(reply))
         elif type_ == "data-response":
