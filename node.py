@@ -45,6 +45,7 @@ def simple_tms(trust_socket, address, port, data, db, provider):
         elif type_ == "format-request":
             print(pp(component))
             reply = FormatResponse()
+            reply["rid"] = int(component)
             reply["assessment"] = db.trust_schema
             reply["trust"] = db.assessment_schema
             reply["format"] = db.tms
@@ -89,7 +90,7 @@ def main(address, port, database, provider):
                 trust_socket.send(address, port, encoder.encode(req))
             elif verb == "freq":
                 trust_socket.send(
-                    address, port, encoder.encode(FormatRequest()))
+                    address, port, encoder.encode(FormatRequest(randint(0, 1000))))
             else:
                 print("Unknown verb: %s" % verb)
         except KeyboardInterrupt:

@@ -130,13 +130,14 @@ class TestMessages(AbstractTests):
         assert(data.getComponent().prettyPrint() == t_res.prettyPrint())
 
     def test_format_request(self):
-        f_req = FormatRequest()
+        f_req = FormatRequest(10)
         data, _ = decoder.decode(encoder.encode(f_req), asn1Spec=Message())
         assert(data.getComponent() == f_req)
         assert(data.getComponent().prettyPrint() == f_req.prettyPrint())
 
     def test_format_response(self):
         f_res = FormatResponse()
+        f_res["rid"] = 10
         f_res["format"] = Format((1, 2, 3))
         f_res["assessment"] = char.PrintableString(
             "Here be an ASN.1 spec for assessment values")
@@ -149,6 +150,7 @@ class TestMessages(AbstractTests):
 
     def test_fault(self):
         e = Fault()
+        e["rid"] = 10
         e["value"] = "invalid-parameters"
         e["message"] = "something went wrong!"
 
