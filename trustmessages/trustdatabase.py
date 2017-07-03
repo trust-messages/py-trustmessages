@@ -56,13 +56,15 @@ class InMemoryTrustDatabase(object):
         exec(_clazz, locals())
         return locals()["ValueFormat"]
 
-    def __init__(self, tms, assessment_schema, trust_schema=None):
+    def __init__(self, tms_trust, tms_assessment, assessment_schema, trust_schema):
         self.trust_db = []
         self.assessment_db = []
 
-        self.tms = tms
+        self.tms_trust = tms_trust
+        self.tms_assessment = tms_assessment
+
         self.assessment_schema = assessment_schema
-        self.trust_schema = trust_schema if trust_schema is not None else assessment_schema
+        self.trust_schema = trust_schema
 
         # time generators
         self.assess_time_generator = itertools.count(0)
@@ -70,14 +72,11 @@ class InMemoryTrustDatabase(object):
 
         # define Value classes
         self.AssessmentClass = self._define_value_class(assessment_schema)
-        if trust_schema is None:
-            # Are they the same?
-            self.TrustClass = self.AssessmentClass
-        else:
-            self.TrustClass = self._define_value_class(trust_schema)
+        self.TrustClass = self._define_value_class(trust_schema)
 
-        self.SYSTEMS[tms] = {
+        self.SYSTEMS[tms_trust] = {
             "assessment": self.AssessmentClass, "trust": self.TrustClass}
+
 
 def create_data(source, target, service, date, value):
     """Creates a data instance"""
@@ -98,23 +97,23 @@ class QtmDb(InMemoryTrustDatabase):
                   "ValueFormat ::= ENUMERATED { "
                   "very-bad (0), bad (1), neutral (2), good (3), very-good (4)"
                   "} END")
-        super(QtmDb, self).__init__((1, 1, 1), schema)
+        super(QtmDb, self).__init__((1, 1, 1), (1, 1, 1), schema, schema)
 
         self.values_generator = itertools.cycle(self.TrustClass().getNamedValues())
 
         self.trust_db = [create_data(
             source, target, service, next(self.trust_time_generator),
             self.AssessmentClass(next(self.values_generator)[0]))
-                         for source in self.USERS
-                         for target in self.USERS
-                         for service in self.SERVICES if source != target]
+            for source in self.USERS
+            for target in self.USERS
+            for service in self.SERVICES if source != target]
 
         self.assessment_db = [create_data(
             source, target, service, next(self.assess_time_generator),
             self.AssessmentClass(next(self.values_generator)[0]))
-                              for source in self.USERS
-                              for target in self.USERS
-                              for service in self.SERVICES if source != target]
+            for source in self.USERS
+            for target in self.USERS
+            for service in self.SERVICES if source != target]
 
 
 class SLDb(InMemoryTrustDatabase):
@@ -133,7 +132,7 @@ class SLDb(InMemoryTrustDatabase):
         schema = ("ValueFormat DEFINITIONS ::= BEGIN "
                   "ValueFormat ::= SEQUENCE { b REAL, d REAL, u REAL } "
                   "END")
-        super(SLDb, self).__init__((2, 2, 2), schema)
+        super(SLDb, self).__init__((2, 2, 2), (2, 2, 2), schema, schema)
 
         self.AssessmentClass.prettyPrint = lambda v: "<b=%.2f, d=%.2f, u=%.2f>" % (
             (v["b"], v["d"], v["u"]) if None not in v else (0, 0, 0))
@@ -142,13 +141,13 @@ class SLDb(InMemoryTrustDatabase):
         self.trust_db = [create_data(
             source, target, service, next(self.trust_time_generator),
             next(self.values_generator()))
-                         for source in self.USERS
-                         for target in self.USERS
-                         for service in self.SERVICES if source != target]
+            for source in self.USERS
+            for target in self.USERS
+            for service in self.SERVICES if source != target]
 
         self.assessment_db = [create_data(
             source, target, service, next(self.assess_time_generator),
             next(self.values_generator()))
-                              for source in self.USERS
-                              for target in self.USERS
-                              for service in self.SERVICES if source != target]
+            for source in self.USERS
+            for target in self.USERS
+            for service in self.SERVICES if source != target]

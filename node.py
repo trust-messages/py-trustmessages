@@ -4,10 +4,10 @@ Example TMS.
 from __future__ import absolute_import, print_function
 
 import sys
-from builtins import input
 from functools import partial
 from random import randint
 
+from builtins import input
 from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import univ
 
@@ -34,7 +34,7 @@ def simple_tms(trust_socket, address, port, data, db, provider):
                           db.trust_db if component["type"] == "trust" else db.assessment_db)
             reply = DataResponse()
             reply["provider"] = provider
-            reply["format"] = db.tms
+            reply["format"] = db.tms_trust if component["type"] == 0 else db.tms_assessment
             reply["rid"] = component["rid"]
             reply["type"] = component["type"]
             reply["response"] = univ.SequenceOf(componentType=Rating())
@@ -46,9 +46,10 @@ def simple_tms(trust_socket, address, port, data, db, provider):
             print(pp(component))
             reply = FormatResponse()
             reply["rid"] = int(component)
-            reply["assessment"] = db.trust_schema
-            reply["trust"] = db.assessment_schema
-            reply["format"] = db.tms
+            reply["assessment-id"] = db.tms_assessment
+            reply["assessment-def"] = db.assessment_schema
+            reply["trust-id"] = db.tms_trust
+            reply["trust-def"] = db.trust_schema
             trust_socket.send(address, port, encoder.encode(reply))
         elif type_ == "format-response":
             print(component.prettyPrint())
