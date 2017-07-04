@@ -7,7 +7,7 @@ import random
 import sys
 
 from asn1ate import parser, pyasn1gen, sema
-from pyasn1.codec.ber import decoder, encoder
+from pyasn1.codec.ber import decoder
 
 from . import messages
 
@@ -85,7 +85,7 @@ def create_data(source, target, service, date, value):
     data["target"] = target
     data["service"] = service
     data["date"] = date
-    data["value"] = encoder.encode(value)
+    data["value"] = value
     return data
 
 
