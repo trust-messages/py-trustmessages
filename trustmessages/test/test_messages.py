@@ -7,8 +7,8 @@ from itertools import cycle
 from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import char, univ
 
-from .. import (Rating, DataRequest, DataResponse, Comparison, Fault, Format,
-                FormatRequest, FormatResponse, Logical, Message, QtmDb, Query,
+from .. import (Rating, DataRequest, DataResponse, Constraint, Fault, Format,
+                FormatRequest, FormatResponse, Expression, Message, QtmDb, Query,
                 Value, trustutils)
 
 
@@ -62,10 +62,10 @@ class TestMessages(AbstractTests):
         a_req["rid"] = 1
         a_req["type"] = "assessment"
         sq = Query()
-        sq["cmp"] = Comparison()
-        sq["cmp"]["op"] = "ge"
-        sq["cmp"]["value"] = Value()
-        sq["cmp"]["value"]["date"] = 80
+        sq["con"] = Constraint()
+        sq["con"]["operator"] = "ge"
+        sq["con"]["value"] = Value()
+        sq["con"]["value"]["date"] = 80
         a_req["query"] = sq
         decoded, _ = decoder.decode(encoder.encode(a_req), asn1Spec=Message())
         assert (a_req.prettyPrint() == decoded.getComponent().prettyPrint())
@@ -96,10 +96,10 @@ class TestMessages(AbstractTests):
         t_req["rid"] = 5000
         t_req["type"] = "trust"
         sq = Query()
-        sq["cmp"] = Comparison()
-        sq["cmp"]["op"] = "ge"
-        sq["cmp"]["value"] = Value()
-        sq["cmp"]["value"]["date"] = 80
+        sq["con"] = Constraint()
+        sq["con"]["operator"] = "ge"
+        sq["con"]["value"] = Value()
+        sq["con"]["value"]["date"] = 80
         t_req["query"] = sq
         data, _ = decoder.decode(encoder.encode(t_req), asn1Spec=Message())
         assert (data.getComponent() == t_req)
@@ -163,54 +163,54 @@ class TestMessages(AbstractTests):
 class TestQueries(AbstractTests):
     def test_simple_query1(self):
         sq1 = Query()
-        sq1["cmp"] = Comparison()
-        sq1["cmp"]["op"] = "lt"
-        sq1["cmp"]["value"] = Value()
-        sq1["cmp"]["value"]["date"] = 50
+        sq1["con"] = Constraint()
+        sq1["con"]["operator"] = "lt"
+        sq1["con"]["value"] = Value()
+        sq1["con"]["value"]["date"] = 50
 
         assert (all(t["date"] < 50
                     for t in filter(trustutils.create_predicate(sq1), self.qtm.assessment_db)))
 
     def test_simple_query2(self):
         sq2 = Query()
-        sq2["log"] = Logical()
-        sq2["log"]["op"] = "and"
-        sq2["log"]["l"] = Query()
-        sq2["log"]["l"]["cmp"] = Comparison()
-        sq2["log"]["l"]["cmp"]["op"] = "eq"
-        sq2["log"]["l"]["cmp"]["value"] = Value()
-        sq2["log"]["l"]["cmp"]["value"]["source"] = "alice"
-        sq2["log"]["r"] = Query()
-        sq2["log"]["r"]["cmp"] = Comparison()
-        sq2["log"]["r"]["cmp"]["op"] = "eq"
-        sq2["log"]["r"]["cmp"]["value"] = Value()
-        sq2["log"]["r"]["cmp"]["value"]["target"] = "bob"
+        sq2["exp"] = Expression()
+        sq2["exp"]["operator"] = "and"
+        sq2["exp"]["left"] = Query()
+        sq2["exp"]["left"]["con"] = Constraint()
+        sq2["exp"]["left"]["con"]["operator"] = "eq"
+        sq2["exp"]["left"]["con"]["value"] = Value()
+        sq2["exp"]["left"]["con"]["value"]["source"] = "alice"
+        sq2["exp"]["right"] = Query()
+        sq2["exp"]["right"]["con"] = Constraint()
+        sq2["exp"]["right"]["con"]["operator"] = "eq"
+        sq2["exp"]["right"]["con"]["value"] = Value()
+        sq2["exp"]["right"]["con"]["value"]["target"] = "bob"
 
         assert (all(str(t["source"]) == "alice" and str(t["target"]) == "bob"
                     for t in filter(trustutils.create_predicate(sq2), self.qtm.assessment_db)))
 
     def test_simple_query3(self):
         q = Query()
-        q["log"] = Logical()
-        q["log"]["l"] = Query()
-        q["log"]["l"]["cmp"] = Comparison()
-        q["log"]["l"]["cmp"]["op"] = "eq"
-        q["log"]["l"]["cmp"]["value"] = Value()
-        q["log"]["l"]["cmp"]["value"]["service"] = "seller"
-        q["log"]["op"] = "and"
-        q["log"]["r"] = Query()
-        q["log"]["r"]["log"] = Logical()
-        q["log"]["r"]["log"]["op"] = "or"
-        q["log"]["r"]["log"]["l"] = Query()
-        q["log"]["r"]["log"]["l"]["cmp"] = Comparison()
-        q["log"]["r"]["log"]["l"]["cmp"]["op"] = "eq"
-        q["log"]["r"]["log"]["l"]["cmp"]["value"] = Value()
-        q["log"]["r"]["log"]["l"]["cmp"]["value"]["source"] = "charlie"
-        q["log"]["r"]["log"]["r"] = Query()
-        q["log"]["r"]["log"]["r"]["cmp"] = Comparison()
-        q["log"]["r"]["log"]["r"]["cmp"]["op"] = "eq"
-        q["log"]["r"]["log"]["r"]["cmp"]["value"] = Value()
-        q["log"]["r"]["log"]["r"]["cmp"]["value"]["source"] = "david"
+        q["exp"] = Expression()
+        q["exp"]["left"] = Query()
+        q["exp"]["left"]["con"] = Constraint()
+        q["exp"]["left"]["con"]["operator"] = "eq"
+        q["exp"]["left"]["con"]["value"] = Value()
+        q["exp"]["left"]["con"]["value"]["service"] = "seller"
+        q["exp"]["operator"] = "and"
+        q["exp"]["right"] = Query()
+        q["exp"]["right"]["exp"] = Expression()
+        q["exp"]["right"]["exp"]["operator"] = "or"
+        q["exp"]["right"]["exp"]["left"] = Query()
+        q["exp"]["right"]["exp"]["left"]["con"] = Constraint()
+        q["exp"]["right"]["exp"]["left"]["con"]["operator"] = "eq"
+        q["exp"]["right"]["exp"]["left"]["con"]["value"] = Value()
+        q["exp"]["right"]["exp"]["left"]["con"]["value"]["source"] = "charlie"
+        q["exp"]["right"]["exp"]["right"] = Query()
+        q["exp"]["right"]["exp"]["right"]["con"] = Constraint()
+        q["exp"]["right"]["exp"]["right"]["con"]["operator"] = "eq"
+        q["exp"]["right"]["exp"]["right"]["con"]["value"] = Value()
+        q["exp"]["right"]["exp"]["right"]["con"]["value"]["source"] = "david"
 
         assert (all(str(t["service"]) == "seller" and (str(t["source"]) == "charlie" or str(t["source"]) == "david")
                     for t in filter(trustutils.create_predicate(q), self.qtm.assessment_db)))

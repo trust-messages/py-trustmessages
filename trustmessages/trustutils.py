@@ -26,11 +26,11 @@ def create_predicate(query):
 
     component = query.getComponent()
 
-    if query.getName() == "log":
-        left_predicate = create_predicate(component["l"])
-        right_predicate = create_predicate(component["r"])
+    if query.getName() == "exp":
+        left_predicate = create_predicate(component["left"])
+        right_predicate = create_predicate(component["right"])
 
-        if component["op"] == 0:  # and
+        if component["operator"] == 0:  # and
             return lambda item: left_predicate(item) and right_predicate(item)
         else:
             return lambda item: left_predicate(item) or right_predicate(item)
@@ -38,15 +38,15 @@ def create_predicate(query):
         value = component["value"].getComponent()
         field = component["value"].getName()
 
-        if component["op"] == 0:  # eq
+        if component["operator"] == 0:  # eq
             return lambda item: item[field] == value
-        elif component["op"] == 1:  # ne
+        elif component["operator"] == 1:  # ne
             return lambda item: item[field] != value
-        elif component["op"] == 2:  # lt
+        elif component["operator"] == 2:  # lt
             return lambda item: item[field] < value
-        elif component["op"] == 3:  # le
+        elif component["operator"] == 3:  # le
             return lambda item: item[field] <= value
-        elif component["op"] == 4:  # gt
+        elif component["operator"] == 4:  # gt
             return lambda item: item[field] > value
         else:  # ge
             return lambda item: item[field] >= value
@@ -57,11 +57,11 @@ def create_sql(query):
 
     component = query.getComponent()
 
-    if query.getName() == "log":
-        left_sql = create_sql(component["l"])
-        right_sql = create_sql(component["r"])
+    if query.getName() == "exp":
+        left_sql = create_sql(component["left"])
+        right_sql = create_sql(component["right"])
 
-        if component["op"] == 0:
+        if component["operator"] == 0:
             return "%s AND %s" % (left_sql, right_sql)
         else:
             return "%s OR %s" % (left_sql, right_sql)
@@ -69,15 +69,15 @@ def create_sql(query):
         value = component["value"].getComponent()
         field = component["value"].getName()
 
-        if component["op"] == 0:  # eq
+        if component["operator"] == 0:  # eq
             return "%s = %s" % (field, value)
-        elif component["op"] == 1:  # ne
+        elif component["operator"] == 1:  # ne
             return "%s != %s" % (field, value)
-        elif component["op"] == 2:  # lt
+        elif component["operator"] == 2:  # lt
             return "%s < %s" % (field, value)
-        elif component["op"] == 3:  # le
+        elif component["operator"] == 3:  # le
             return "%s <= %s" % (field, value)
-        elif component["op"] == 4:  # gt
+        elif component["operator"] == 4:  # gt
             return "%s > %s" % (field, value)
         else:  # ge
             return "%s >= %s" % (field, value)
@@ -88,11 +88,11 @@ def create_mongo(query):
 
     component = query.getComponent()
 
-    if query.getName() == "log":
-        left_mq = create_mongo(component["l"])
-        right_mq = create_mongo(component["r"])
+    if query.getName() == "exp":
+        left_mq = create_mongo(component["left"])
+        right_mq = create_mongo(component["right"])
 
-        if component["op"] == 0:
+        if component["operator"] == 0:
             return {"$and": [left_mq, right_mq]}
         else:
             return {"$or": [left_mq, right_mq]}
@@ -103,15 +103,15 @@ def create_mongo(query):
         else:
             value = str(component["value"].getComponent())
 
-        if component["op"] == 0:  # eq
+        if component["operator"] == 0:  # eq
             return {field: {"$eq": value}}
-        elif component["op"] == 1:  # ne
+        elif component["operator"] == 1:  # ne
             return {field: {"$ne": value}}
-        elif component["op"] == 2:  # lt
+        elif component["operator"] == 2:  # lt
             return {field: {"$lt": value}}
-        elif component["op"] == 3:  # le
+        elif component["operator"] == 3:  # le
             return {field: {"$lte": value}}
-        elif component["op"] == 4:  # gt
+        elif component["operator"] == 4:  # gt
             return {field: {"$gt": value}}
         else:  # ge
             return {field: {"$gte": value}}
