@@ -15,7 +15,7 @@ class QueryVisitor(ParseTreeVisitor):
         "=": "eq"
     }
 
-    def visitComparison(self, ctx):
+    def visitConstraint(self, ctx):
         q = Query()
         q["con"] = Constraint()
         q["con"]["operator"] = self.Q2DM[str(ctx.OP())]

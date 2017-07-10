@@ -1,8 +1,11 @@
 # Generated from Query.g4 by ANTLR 4.6
 # encoding: utf-8
 from __future__ import print_function
-from antlr4 import *
+
 from io import StringIO
+
+from antlr4 import *
+
 
 def serializedATN():
     with StringIO() as buf:
@@ -19,34 +22,33 @@ def serializedATN():
         return buf.getvalue()
 
 
-class QueryParser ( Parser ):
-
+class QueryParser(Parser):
     grammarFileName = "Query.g4"
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
+    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ u"<INVALID>", u"'('", u"')'", u"'AND'", u"'OR'" ]
+    literalNames = [u"<INVALID>", u"'('", u"')'", u"'AND'", u"'OR'"]
 
-    symbolicNames = [ u"<INVALID>", u"<INVALID>", u"<INVALID>", u"<INVALID>", 
-                      u"<INVALID>", u"FIELD", u"OP", u"VALUE", u"WS" ]
+    symbolicNames = [u"<INVALID>", u"<INVALID>", u"<INVALID>", u"<INVALID>",
+                     u"<INVALID>", u"FIELD", u"OP", u"VALUE", u"WS"]
 
     RULE_expr = 0
 
-    ruleNames =  [ u"expr" ]
+    ruleNames = [u"expr"]
 
     EOF = Token.EOF
-    T__0=1
-    T__1=2
-    T__2=3
-    T__3=4
-    FIELD=5
-    OP=6
-    VALUE=7
-    WS=8
+    T__0 = 1
+    T__1 = 2
+    T__2 = 3
+    T__3 = 4
+    FIELD = 5
+    OP = 6
+    VALUE = 7
+    WS = 8
 
     def __init__(self, input):
         super(QueryParser, self).__init__(input)
@@ -54,54 +56,21 @@ class QueryParser ( Parser ):
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
-
-
     class ExprContext(ParserRuleContext):
 
         def __init__(self, parser, parent=None, invokingState=-1):
             super(QueryParser.ExprContext, self).__init__(parent, invokingState)
             self.parser = parser
 
-
         def getRuleIndex(self):
             return QueryParser.RULE_expr
 
-     
         def copyFrom(self, ctx):
             super(QueryParser.ExprContext, self).copyFrom(ctx)
 
-
-    class ComparisonContext(ExprContext):
-
-        def __init__(self, parser, ctx): # actually a QueryParser.ExprContext)
-            super(QueryParser.ComparisonContext, self).__init__(parser)
-            self.copyFrom(ctx)
-
-        def FIELD(self):
-            return self.getToken(QueryParser.FIELD, 0)
-        def OP(self):
-            return self.getToken(QueryParser.OP, 0)
-        def VALUE(self):
-            return self.getToken(QueryParser.VALUE, 0)
-
-        def enterRule(self, listener):
-            if hasattr(listener, "enterComparison"):
-                listener.enterComparison(self)
-
-        def exitRule(self, listener):
-            if hasattr(listener, "exitComparison"):
-                listener.exitComparison(self)
-
-        def accept(self, visitor):
-            if hasattr(visitor, "visitComparison"):
-                return visitor.visitComparison(self)
-            else:
-                return visitor.visitChildren(self)
-
-
     class OrContext(ExprContext):
 
-        def __init__(self, parser, ctx): # actually a QueryParser.ExprContext)
+        def __init__(self, parser, ctx):  # actually a QueryParser.ExprContext)
             super(QueryParser.OrContext, self).__init__(parser)
             self.copyFrom(ctx)
 
@@ -109,16 +78,7 @@ class QueryParser ( Parser ):
             if i is None:
                 return self.getTypedRuleContexts(QueryParser.ExprContext)
             else:
-                return self.getTypedRuleContext(QueryParser.ExprContext,i)
-
-
-        def enterRule(self, listener):
-            if hasattr(listener, "enterOr"):
-                listener.enterOr(self)
-
-        def exitRule(self, listener):
-            if hasattr(listener, "exitOr"):
-                listener.exitOr(self)
+                return self.getTypedRuleContext(QueryParser.ExprContext, i)
 
         def accept(self, visitor):
             if hasattr(visitor, "visitOr"):
@@ -126,10 +86,9 @@ class QueryParser ( Parser ):
             else:
                 return visitor.visitChildren(self)
 
-
     class AndContext(ExprContext):
 
-        def __init__(self, parser, ctx): # actually a QueryParser.ExprContext)
+        def __init__(self, parser, ctx):  # actually a QueryParser.ExprContext)
             super(QueryParser.AndContext, self).__init__(parser)
             self.copyFrom(ctx)
 
@@ -137,16 +96,7 @@ class QueryParser ( Parser ):
             if i is None:
                 return self.getTypedRuleContexts(QueryParser.ExprContext)
             else:
-                return self.getTypedRuleContext(QueryParser.ExprContext,i)
-
-
-        def enterRule(self, listener):
-            if hasattr(listener, "enterAnd"):
-                listener.enterAnd(self)
-
-        def exitRule(self, listener):
-            if hasattr(listener, "exitAnd"):
-                listener.exitAnd(self)
+                return self.getTypedRuleContext(QueryParser.ExprContext, i)
 
         def accept(self, visitor):
             if hasattr(visitor, "visitAnd"):
@@ -154,32 +104,41 @@ class QueryParser ( Parser ):
             else:
                 return visitor.visitChildren(self)
 
+    class ConstraintContext(ExprContext):
+
+        def __init__(self, parser, ctx):  # actually a QueryParser.ExprContext)
+            super(QueryParser.ConstraintContext, self).__init__(parser)
+            self.copyFrom(ctx)
+
+        def FIELD(self):
+            return self.getToken(QueryParser.FIELD, 0)
+
+        def OP(self):
+            return self.getToken(QueryParser.OP, 0)
+
+        def VALUE(self):
+            return self.getToken(QueryParser.VALUE, 0)
+
+        def accept(self, visitor):
+            if hasattr(visitor, "visitConstraint"):
+                return visitor.visitConstraint(self)
+            else:
+                return visitor.visitChildren(self)
 
     class ParenthesisContext(ExprContext):
 
-        def __init__(self, parser, ctx): # actually a QueryParser.ExprContext)
+        def __init__(self, parser, ctx):  # actually a QueryParser.ExprContext)
             super(QueryParser.ParenthesisContext, self).__init__(parser)
             self.copyFrom(ctx)
 
         def expr(self):
-            return self.getTypedRuleContext(QueryParser.ExprContext,0)
-
-
-        def enterRule(self, listener):
-            if hasattr(listener, "enterParenthesis"):
-                listener.enterParenthesis(self)
-
-        def exitRule(self, listener):
-            if hasattr(listener, "exitParenthesis"):
-                listener.exitParenthesis(self)
+            return self.getTypedRuleContext(QueryParser.ExprContext, 0)
 
         def accept(self, visitor):
             if hasattr(visitor, "visitParenthesis"):
                 return visitor.visitParenthesis(self)
             else:
                 return visitor.visitChildren(self)
-
-
 
     def expr(self, _p=0):
         _parentctx = self._ctx
@@ -194,7 +153,7 @@ class QueryParser ( Parser ):
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [QueryParser.FIELD]:
-                localctx = QueryParser.ComparisonContext(self, localctx)
+                localctx = QueryParser.ConstraintContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
 
@@ -222,15 +181,15 @@ class QueryParser ( Parser ):
             self._ctx.stop = self._input.LT(-1)
             self.state = 20
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,2,self._ctx)
-            while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
-                if _alt==1:
+            _alt = self._interp.adaptivePredict(self._input, 2, self._ctx)
+            while _alt != 2 and _alt != ATN.INVALID_ALT_NUMBER:
+                if _alt == 1:
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
                     self.state = 18
                     self._errHandler.sync(self)
-                    la_ = self._interp.adaptivePredict(self._input,1,self._ctx)
+                    la_ = self._interp.adaptivePredict(self._input, 1, self._ctx)
                     if la_ == 1:
                         localctx = QueryParser.AndContext(self, QueryParser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
@@ -257,10 +216,9 @@ class QueryParser ( Parser ):
                         self.expr(2)
                         pass
 
-             
                 self.state = 22
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,2,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input, 2, self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -269,8 +227,6 @@ class QueryParser ( Parser ):
         finally:
             self.unrollRecursionContexts(_parentctx)
         return localctx
-
-
 
     def sempred(self, localctx, ruleIndex, predIndex):
         if self._predicates == None:
@@ -283,14 +239,8 @@ class QueryParser ( Parser ):
             return pred(localctx, predIndex)
 
     def expr_sempred(self, localctx, predIndex):
-            if predIndex == 0:
-                return self.precpred(self._ctx, 2)
-         
+        if predIndex == 0:
+            return self.precpred(self._ctx, 2)
 
-            if predIndex == 1:
-                return self.precpred(self._ctx, 1)
-         
-
-
-
-
+        if predIndex == 1:
+            return self.precpred(self._ctx, 1)

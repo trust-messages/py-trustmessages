@@ -2,16 +2,14 @@ from __future__ import absolute_import, print_function
 
 from antlr4 import InputStream, CommonTokenStream
 
-from .QueryLexer import QueryLexer
-from .QueryParser import QueryParser
-from .QueryVisitor import QueryVisitor
-from .trustutils import pp
+from trustmessages.QueryLexer import QueryLexer
+from trustmessages.QueryParser import QueryParser
+from trustmessages.QueryVisitor import QueryVisitor
+from trustmessages.trustutils import pp
 
 if __name__ == '__main__':
-    # input_ = InputStream("service = renter")
-    # input_ = InputStream("service = renter AND target = david@fri.si")
     input_ = InputStream(
-        "service = renter AND (target = david@fri.si OR target = aleks@fri.si)")
+        "service = renter AND (target = alice OR target = bob)")
     lexer = QueryLexer(input_)
     stream = CommonTokenStream(lexer)
     parser = QueryParser(stream)

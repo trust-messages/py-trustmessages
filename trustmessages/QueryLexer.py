@@ -1,8 +1,10 @@
 # Generated from Query.g4 by ANTLR 4.6
 # encoding: utf-8
 from __future__ import print_function
-from antlr4 import *
+
 from io import StringIO
+
+from antlr4 import *
 
 
 def serializedATN():
@@ -38,11 +40,9 @@ def serializedATN():
 
 
 class QueryLexer(Lexer):
-
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
-
+    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
 
     T__0 = 1
     T__1 = 2
@@ -53,16 +53,16 @@ class QueryLexer(Lexer):
     VALUE = 7
     WS = 8
 
-    modeNames = [ u"DEFAULT_MODE" ]
+    modeNames = [u"DEFAULT_MODE"]
 
-    literalNames = [ u"<INVALID>",
-            u"'('", u"')'", u"'AND'", u"'OR'" ]
+    literalNames = [u"<INVALID>",
+                    u"'('", u"')'", u"'AND'", u"'OR'"]
 
-    symbolicNames = [ u"<INVALID>",
-            u"FIELD", u"OP", u"VALUE", u"WS" ]
+    symbolicNames = [u"<INVALID>",
+                     u"FIELD", u"OP", u"VALUE", u"WS"]
 
-    ruleNames = [ u"T__0", u"T__1", u"T__2", u"T__3", u"FIELD", u"OP", u"VALUE", 
-                  u"WS" ]
+    ruleNames = [u"T__0", u"T__1", u"T__2", u"T__3", u"FIELD", u"OP", u"VALUE",
+                 u"WS"]
 
     grammarFileName = u"Query.g4"
 
@@ -72,5 +72,3 @@ class QueryLexer(Lexer):
         self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
         self._actions = None
         self._predicates = None
-
-
