@@ -26,30 +26,30 @@ def create_predicate(query):
 
     component = query.getComponent()
 
-    if query.getName() == "exp":
-        left_predicate = create_predicate(component["left"])
-        right_predicate = create_predicate(component["right"])
-
-        if component["operator"] == 0:  # and
-            return lambda item: left_predicate(item) and right_predicate(item)
-        else:
-            return lambda item: left_predicate(item) or right_predicate(item)
-    else:
+    if query.getName() == "con":
         value = component["value"].getComponent()
         field = component["value"].getName()
 
         if component["operator"] == 0:  # eq
-            return lambda item: item[field] == value
+            return lambda rating: rating[field] == value
         elif component["operator"] == 1:  # ne
-            return lambda item: item[field] != value
+            return lambda rating: rating[field] != value
         elif component["operator"] == 2:  # lt
-            return lambda item: item[field] < value
+            return lambda rating: rating[field] < value
         elif component["operator"] == 3:  # le
-            return lambda item: item[field] <= value
+            return lambda rating: rating[field] <= value
         elif component["operator"] == 4:  # gt
-            return lambda item: item[field] > value
+            return lambda rating: rating[field] > value
         else:  # ge
-            return lambda item: item[field] >= value
+            return lambda rating: rating[field] >= value
+    else:  # exp
+        left = create_predicate(component["left"])
+        right = create_predicate(component["right"])
+
+        if component["operator"] == 0:  # and
+            return lambda rating: left(rating) and right(rating)
+        else:
+            return lambda rating: left(rating) or right(rating)
 
 
 def create_sql(query):
