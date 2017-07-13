@@ -38,8 +38,10 @@ class TestMessages(AbstractTests):
         r["date"] = 100
         val = next(self.quantitative)
         r["value"] = encoder.encode(univ.Integer(val))
+
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Rating())
 
+        assert (r == decoded)
         assert (r.prettyPrint() == decoded.prettyPrint())
         assert (decoder.decode(decoded["value"],
                                asn1Spec=univ.Integer())[0] == val)
@@ -54,6 +56,8 @@ class TestMessages(AbstractTests):
         r["value"] = encoder.encode(char.PrintableString(val))
 
         decoded, _ = decoder.decode(encoder.encode(r), asn1Spec=Rating())
+
+        assert (r == decoded)
         assert (r.prettyPrint() == decoded.prettyPrint())
         assert (str(decoder.decode(decoded["value"], asn1Spec=char.PrintableString())[0]) == val)
 
@@ -67,8 +71,15 @@ class TestMessages(AbstractTests):
         sq["con"]["value"] = Value()
         sq["con"]["value"]["date"] = 80
         a_req["query"] = sq
-        decoded, _ = decoder.decode(encoder.encode(a_req), asn1Spec=Message())
-        assert (a_req.prettyPrint() == decoded.getComponent().prettyPrint())
+
+        original = Message()
+        original["version"] = 1
+        original["payload"] = a_req
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
+
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == a_req)
+        assert (decoded["payload"].getComponent().prettyPrint() == a_req.prettyPrint())
 
     def test_assessment_response(self):
         a_res = DataResponse()
@@ -87,9 +98,14 @@ class TestMessages(AbstractTests):
             a["value"] = encoder.encode(univ.Integer(5))
             a_res["response"].setComponentByPosition(i, a)
 
-        data, _ = decoder.decode(encoder.encode(a_res), asn1Spec=Message())
-        assert (data.getComponent() == a_res)
-        assert (data.getComponent().prettyPrint() == a_res.prettyPrint())
+        original = Message()
+        original["version"] = 1
+        original["payload"] = a_res
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
+
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == a_res)
+        assert (decoded["payload"].getComponent().prettyPrint() == a_res.prettyPrint())
 
     def test_trust_request(self):
         t_req = DataRequest()
@@ -101,9 +117,15 @@ class TestMessages(AbstractTests):
         sq["con"]["value"] = Value()
         sq["con"]["value"]["date"] = 80
         t_req["query"] = sq
-        data, _ = decoder.decode(encoder.encode(t_req), asn1Spec=Message())
-        assert (data.getComponent() == t_req)
-        assert (data.getComponent().prettyPrint() == t_req.prettyPrint())
+
+        original = Message()
+        original["version"] = 1
+        original["payload"] = t_req
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
+
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == t_req)
+        assert (decoded["payload"].getComponent().prettyPrint() == t_req.prettyPrint())
 
     def test_trust_response(self):
         t_res = DataResponse()
@@ -123,16 +145,25 @@ class TestMessages(AbstractTests):
                 char.PrintableString(next(self.qualitative)))
             t_res["response"].setComponentByPosition(i, t)
 
-        data, _ = decoder.decode(encoder.encode(t_res), asn1Spec=Message())
+        original = Message()
+        original["version"] = 1
+        original["payload"] = t_res
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
 
-        assert (data.getComponent() == t_res)
-        assert (data.getComponent().prettyPrint() == t_res.prettyPrint())
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == t_res)
+        assert (decoded["payload"].getComponent().prettyPrint() == t_res.prettyPrint())
 
     def test_format_request(self):
         f_req = FormatRequest(10)
-        data, _ = decoder.decode(encoder.encode(f_req), asn1Spec=Message())
-        assert (data.getComponent() == f_req)
-        assert (data.getComponent().prettyPrint() == f_req.prettyPrint())
+        original = Message()
+        original["version"] = 1
+        original["payload"] = f_req
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
+
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == f_req)
+        assert (decoded["payload"].getComponent().prettyPrint() == f_req.prettyPrint())
 
     def test_format_response(self):
         f_res = FormatResponse()
@@ -144,20 +175,28 @@ class TestMessages(AbstractTests):
         f_res["trust-def"] = char.PrintableString(
             "Here be an ASN.1 spec for trust values")
 
-        data, _ = decoder.decode(encoder.encode(f_res), asn1Spec=Message())
-        assert (data.getComponent() == f_res)
-        assert (data.getComponent().prettyPrint() == f_res.prettyPrint())
+        original = Message()
+        original["version"] = 1
+        original["payload"] = f_res
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
+
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == f_res)
+        assert (decoded["payload"].getComponent().prettyPrint() == f_res.prettyPrint())
 
     def test_fault(self):
         e = Fault()
         e["rid"] = 10
-        e["value"] = "invalid-parameters"
         e["message"] = "something went wrong!"
 
-        data, _ = decoder.decode(encoder.encode(e), asn1Spec=Message())
+        original = Message()
+        original["version"] = 1
+        original["payload"] = e
+        decoded, _ = decoder.decode(encoder.encode(original), asn1Spec=Message())
 
-        assert (data.getComponent() == e)
-        assert (data.getComponent().prettyPrint() == e.prettyPrint())
+        assert (decoded == original)
+        assert (decoded["payload"].getComponent() == e)
+        assert (decoded["payload"].getComponent().prettyPrint() == e.prettyPrint())
 
 
 class TestQueries(AbstractTests):

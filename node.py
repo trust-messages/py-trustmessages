@@ -20,39 +20,47 @@ from trustmessages.trustutils import create_predicate, create_query, pp
 
 def simple_tms(trust_socket, address, port, data, db, provider):
     try:
-        message, remaining = decoder.decode(data, asn1Spec=Message())
+        incoming_message, remaining = decoder.decode(data, asn1Spec=Message())
         assert remaining == b"", "Message did not fully decode: %s" % remaining
-        component = message.getComponent()
-        type_ = message.getName()
+        assert incoming_message["version"] == 1, "Invalid protocol version: %d" % incoming_message["version"]
+        payload = incoming_message["payload"].getComponent()
+        type_ = incoming_message["payload"].getName()
 
         print("(%s, %d): %s [size=%dB]" % (address, port, type_, len(data)))
 
         if type_ == "data-request":
-            print(pp(component))
-            predicate = create_predicate(component["query"])
+            print(pp(payload))
+            predicate = create_predicate(payload["query"])
             hits = filter(predicate,
-                          db.trust_db if component["type"] == "trust" else db.assessment_db)
-            reply = DataResponse()
-            reply["provider"] = provider
-            reply["format"] = db.tms_trust if component["type"] == 0 else db.tms_assessment
-            reply["rid"] = component["rid"]
-            reply["type"] = component["type"]
-            reply["response"] = univ.SequenceOf(componentType=Rating())
-            reply["response"].setComponents(*hits)
-            trust_socket.send(address, port, encoder.encode(reply))
+                          db.trust_db if payload["type"] == "trust" else db.assessment_db)
+            dr = DataResponse()
+            dr["provider"] = provider
+            dr["format"] = db.tms_trust if payload["type"] == 0 else db.tms_assessment
+            dr["rid"] = payload["rid"]
+            dr["type"] = payload["type"]
+            dr["response"] = univ.SequenceOf(componentType=Rating())
+            dr["response"].setComponents(*hits)
+
+            response = Message()
+            response["version"] = 1
+            response["payload"] = dr
+            trust_socket.send(address, port, encoder.encode(response))
         elif type_ == "data-response":
-            print("%d hits: %s" % (len(component["response"]), pp(component)))
+            print("%d hits: %s" % (len(payload["response"]), pp(payload)))
         elif type_ == "format-request":
-            print(pp(component))
-            reply = FormatResponse()
-            reply["rid"] = int(component)
-            reply["assessment-id"] = db.tms_assessment
-            reply["assessment-def"] = db.assessment_schema
-            reply["trust-id"] = db.tms_trust
-            reply["trust-def"] = db.trust_schema
-            trust_socket.send(address, port, encoder.encode(reply))
+            print(pp(payload))
+            fr = FormatResponse()
+            fr["rid"] = int(payload)
+            fr["assessment-id"] = db.tms_assessment
+            fr["assessment-def"] = db.assessment_schema
+            fr["trust-id"] = db.tms_trust
+            fr["trust-def"] = db.trust_schema
+            response = Message()
+            response["version"] = 1
+            response["payload"] = fr
+            trust_socket.send(address, port, encoder.encode(response))
         elif type_ == "format-response":
-            print(component.prettyPrint())
+            print(payload.prettyPrint())
     except Exception as excp:
         print("(%s, %d): Error while parsing (size=%dB) [%s]: %s" % (
             address, port, len(data), type(excp), excp))
@@ -84,14 +92,21 @@ def main(address, port, database, provider):
             elif verb == "disconnect":
                 trust_socket.disconnect(address, port)
             elif verb in ("areq", "treq"):
-                req = DataRequest()
-                req["rid"] = randint(-32700, 32700)
-                req["type"] = "assessment" if verb == "areq" else "trust"
-                req["query"] = create_query(query)
-                trust_socket.send(address, port, encoder.encode(req))
+                dr = DataRequest()
+                dr["rid"] = randint(-32700, 32700)
+                dr["type"] = "assessment" if verb == "areq" else "trust"
+                dr["query"] = create_query(query)
+                request = Message()
+                request["version"] = 1
+                request["payload"] = dr
+                trust_socket.send(address, port, encoder.encode(request))
             elif verb == "freq":
+                request = Message()
+                request["version"] = 1
+                request["payload"] = FormatRequest(randint(0, 1000))
+                trust_socket.send(address, port, encoder.encode(request))
                 trust_socket.send(
-                    address, port, encoder.encode(FormatRequest(randint(0, 1000))))
+                    address, port, encoder.encode(request))
             else:
                 print("Unknown verb: %s" % verb)
         except KeyboardInterrupt:
