@@ -54,3 +54,5 @@ target/
 .noseids
 .vscode/
 tags
+.idea/
+

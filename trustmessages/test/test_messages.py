@@ -274,13 +274,14 @@ class TestPrinting(AbstractTests):
             decoded["value"], asn1Spec=self.qtm.AssessmentClass())
 
     def test_decode_java_query(self):
-        bytez = base64.b64decode(b"Y4IBBQIBAQYCKQEKAQETB3NvbWV0bXMwge9kOhMDYm"
-                                 b"9iEwVhbGljZRMGc2VsbGVyAgF0MCEJCYDLET0swKdt"
-                                 b"ywkJgMcIv78mn9bTCQmAzgHG2umd0plkOhMDYm9iEw"
-                                 b"VhbGljZRMGbGV0dGVyAgF1MCEJCYDNA+EYsw2EuQkJ"
-                                 b"gMsLcwtI+SPlCQmAywUIkerQyTdkOhMDYm9iEwVhbG"
-                                 b"ljZRMGcmVudGVyAgF2MCEJCYDLGrxSy6ATOwkJgMkQ"
-                                 b"NKiuUzSVCQmAyQTaDCMsfn9kORMDYm9iEwVhbGljZR"
-                                 b"MFYnV5ZXICAXcwIQkJgM0C2jFWOA6fCQmAyAmv50Ry"
-                                 b"1sMJCYDNBNhPb6Raqw==")
+        bytez = base64.b64decode(b"MIIBDAIBAWOCAQUCAQEGAikBCgEBEwdzb21ldG1zMI"
+                                 b"HvZDoTA2JvYhMFYWxpY2UTBnNlbGxlcgIBdDAhCQmA"
+                                 b"ywcWcApADU0JCYDHEQNZB1EEKwkJgM8BfZWmVK4nZD"
+                                 b"oTA2JvYhMFYWxpY2UTBmxldHRlcgIBdTAhCQmAzAc+"
+                                 b"TRsonxMJCYDJHlwQ2KW9fQkJgMsJ7GGThVJ7ZDoTA2"
+                                 b"JvYhMFYWxpY2UTBnJlbnRlcgIBdjAhCQmAywUxkTfw"
+                                 b"PesJCYDIFXEUGhJ52QkJgMwMECYiZrltZDkTA2JvYhM"
+                                 b"FYWxpY2UTBWJ1eWVyAgF3MCEJCYDLFBLOKvpZ/wkJgM"
+                                 b"obFgUaA0KJCQnAygM7oW/39oc=")
+
         m, _ = decoder.decode(bytez, asn1Spec=Message())
