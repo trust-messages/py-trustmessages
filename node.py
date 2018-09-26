@@ -105,8 +105,6 @@ def main(address, port, database, provider):
                 request["version"] = 1
                 request["payload"] = FormatRequest(randint(0, 1000))
                 trust_socket.send(address, port, encoder.encode(request))
-                trust_socket.send(
-                    address, port, encoder.encode(request))
             else:
                 print("Unknown verb: %s" % verb)
         except KeyboardInterrupt:
