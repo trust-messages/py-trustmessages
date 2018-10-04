@@ -158,5 +158,5 @@ if __name__ == '__main__':
     # enc_data_response()
     # decode("../c-dr.ber", Message)
     # enc_format_response_length("../long-message-format-response.ber", 2**20)
-    enc_data_request_length("../long-message-data-request.ber", 16)
+    # enc_data_request_length("../long-message-data-request.ber", 100)
     decode("../long-message-data-request.ber", Message)

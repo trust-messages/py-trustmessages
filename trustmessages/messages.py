@@ -50,7 +50,7 @@ class Query(univ.Choice):
     pass
 
 
-for _ in range(10):
+for _ in range(100):
     Expression.tagSet = univ.Sequence.tagSet.tagImplicitly(
         tag.Tag(tag.tagClassApplication, tag.tagFormatConstructed, 6))
     Expression.componentType = namedtype.NamedTypes(
