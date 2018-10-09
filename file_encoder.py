@@ -9,7 +9,7 @@ from trustmessages import DataRequest, Message, FormatRequest, DataResponse, For
 from trustmessages.trustutils import create_query, pp
 
 # users = itertools.cycle(["aaaaaa@xxxxxx.com", "bbbbbb@xxxxxx.com", "cccccc@xxxxxx.com"])
-users = itertools.cycle(["a"*15, "b"*15, "c"*15])
+users = itertools.cycle(["a" * 15, "b" * 15, "c" * 15])
 services = itertools.cycle(["buyera", "seller", "letter", "renter"])
 
 
@@ -131,11 +131,11 @@ def generate_constraints(length=10):
 
 
 def generate_query(length=10):
-    operators = ("AND", "OR")
+    operators = itertools.cycle(("AND", "OR"))
     query, *rest = generate_constraints(length)
 
     for con in rest:
-        operator = random.choice(operators)
+        operator = next(operators)
         query += " %s %s" % (operator, con)
 
     return query
@@ -178,7 +178,21 @@ def enc_data_response_length(destination, length):
     encode(destination, response, False)
 
 
+def gen_data_response():
+    for i in range(10):
+        num = (i + 1) * 100
+        enc_data_response_length("../message-data-response-%d.ber" % num, num)
+
+
+def gen_data_request():
+    for i in range(10):
+        num = (i + 1) * 10
+        enc_data_request_length("../message-data-request-%d.ber" % num, num)
+
+
 if __name__ == '__main__':
+    gen_data_request()
+    gen_data_response()
     # enc_format_request()
     # enc_format_response()
     # enc_data_request()
@@ -186,8 +200,5 @@ if __name__ == '__main__':
     # decode("../c-dr.ber", Message)
     # enc_format_response_length("../long-message-format-response.ber", 2**20)
     # enc_data_request_length("../long-message-data-request.ber", 100)
-    for i in range(10):
-        num = (i + 1) * 100
-        enc_data_response_length("../message-data-response-%d.ber" % num, num)
-        # enc_data_request_length("../message-data-request-%d.ber" % num, num)
+    # enc_data_request_length("../message-data-request-%d.ber" % num, num)
     # decode("../long-message-data-request.ber", Message)
