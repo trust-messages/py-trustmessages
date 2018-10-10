@@ -13,7 +13,7 @@ def measure_decode(files):
         message_decode(f)
 
 
-def message_decode(filename, iterations=100):
+def message_decode(filename, iterations=1000):
     with open(filename, "rb") as h:
         data = h.read()
 
@@ -35,7 +35,7 @@ def measure_encode(files):
         message_encode(f)
 
 
-def message_encode(filename, iterations=100):
+def message_encode(filename, iterations=1000):
     with open(filename, "rb") as h:
         read_bytes = h.read()
 
