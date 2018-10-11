@@ -7,7 +7,7 @@ from trustmessages import Message
 
 
 def measure_decode(files):
-    print("\"Filename\", \"Average\", \"Total\", \"Bytes\"")
+    print("Filename, Average, Total, Bytes")
 
     for f in files:
         message_decode(f)
@@ -25,11 +25,11 @@ def message_decode(filename, iterations=1000):
         assert len(remaining) == 0
         total += end - start
 
-    print("\"%s\", \"%Lf\", \"%Lf\", \"%ld\"" % (filename, total / iterations, total, len(data)))
+    print("%s, %Lf, %Lf, %ld" % (filename, total / iterations, total, len(data)))
 
 
 def measure_encode(files):
-    print("\"Filename\", \"Average\", \"Total\", \"Bytes\"")
+    print("Filename, Average, Total, Bytes")
 
     for f in files:
         message_encode(f)
@@ -50,7 +50,7 @@ def message_encode(filename, iterations=1000):
         assert encoded == read_bytes
         total += end - start
 
-    print("\"%s\", \"%Lf\", \"%Lf\", \"%ld\"" % (filename, total / iterations, total, len(read_bytes)))
+    print("%s, %Lf, %Lf, %ld" % (filename, total / iterations, total, len(read_bytes)))
 
 
 if __name__ == '__main__':
