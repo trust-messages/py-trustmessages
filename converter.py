@@ -3,7 +3,7 @@ import glob
 
 import asn1tools
 
-OUTPUT_FORMATS = ('ber', 'xer', 'per', 'jer', 'uper', 'gser')
+OUTPUT_FORMATS = ('ber', 'xer', 'per', 'jer', 'uper', ) # 'gser')
 msg_spec = asn1tools.parse_files("../asn1-trustmessages/messages.asn")
 fmt_spec = asn1tools.parse_files("../asn1-trustmessages/formats.asn")
 codecs = {
