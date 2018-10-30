@@ -107,7 +107,7 @@ def generate_text(length=100):
     return ''.join(random.choice(string.ascii_letters + " ") for x in range(length))
 
 
-def generate_constraints(length=10):
+def generate_constraints1(length=10):
     fields = itertools.cycle(("source", "target", "service", "date"))
     comparisons = itertools.cycle(("=", "<=", "<", ">", ">="))
 
@@ -128,6 +128,11 @@ def generate_constraints(length=10):
         generated.append("%s %s %s" % (field, comparison, value))
 
     return generated
+
+
+def generate_constraints(length=10):
+    user = "a" * 15
+    return ["%s %s %s" % ("source", "=", user) for _ in range(length)]
 
 
 def generate_query(length=10):
@@ -152,7 +157,7 @@ def enc_data_request_length(destination="../message-data-request.ber", length=10
     encode(destination, request, False)
 
 
-def enc_data_response_length(destination, length):
+def enc_data_response_length1(destination, length):
     a_res = DataResponse()
     a_res["provider"] = "ebay"
     a_res["format"] = Format((1, 1, 1))
@@ -167,6 +172,35 @@ def enc_data_response_length(destination, length):
         a["source"] = next(users)
         a["target"] = next(users)
         a["service"] = next(services)
+        a["date"] = 1000
+        a["value"] = encoder.encode(qtm)
+        a_res["response"].setComponentByPosition(i, a)
+
+    response = Message()
+    response["version"] = 1
+    response["payload"] = a_res
+
+    encode(destination, response, False)
+
+
+def enc_data_response_length(destination, length):
+    a_res = DataResponse()
+    a_res["provider"] = "ebay"
+    a_res["format"] = Format((1, 1, 1))
+    a_res["type"] = "assessment"
+    a_res["rid"] = 1
+    a_res["response"] = univ.SequenceOf(componentType=Rating())
+
+    qtm = QtmDb().AssessmentClass("very-good")
+
+    user = "a" * 15
+    service = "b" * 6
+
+    for i in range(length):
+        a = Rating()
+        a["source"] = user
+        a["target"] = user
+        a["service"] = service
         a["date"] = 1000
         a["value"] = encoder.encode(qtm)
         a_res["response"].setComponentByPosition(i, a)
