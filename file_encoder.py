@@ -38,6 +38,8 @@ def enc_data_request(destination="../message-data-request.ber"):
     dr["query"] = create_query("service = renter AND (target = alice OR target = bob)")
     request = Message()
     request["version"] = 1
+    request["caller"] = "1234567890ABCDEF"
+    request["callee"] = "ABCDEF1234567890"
     request["payload"] = dr
     encode(destination, request)
 
@@ -45,13 +47,14 @@ def enc_data_request(destination="../message-data-request.ber"):
 def enc_format_request(destination="../message-format-request.ber"):
     request = Message()
     request["version"] = 1
+    request["caller"] = "1234567890ABCDEF"
+    request["callee"] = "ABCDEF1234567890"
     request["payload"] = FormatRequest(73)
     encode(destination, request)
 
 
 def enc_data_response(destination="../message-data-response.ber"):
     a_res = DataResponse()
-    a_res["provider"] = "ebay"
     a_res["format"] = Format((1, 1, 1))
     a_res["type"] = "assessment"
     a_res["rid"] = 1
@@ -70,6 +73,8 @@ def enc_data_response(destination="../message-data-response.ber"):
 
     response = Message()
     response["version"] = 1
+    response["caller"] = "1234567890ABCDEF"
+    response["callee"] = "ABCDEF1234567890"
     response["payload"] = a_res
 
     encode(destination, response)
@@ -85,6 +90,8 @@ def enc_format_response(destination="../message-format-response.ber"):
 
     m = Message()
     m["version"] = 1
+    m["caller"] = "1234567890ABCDEF"
+    m["callee"] = "ABCDEF1234567890"
     m["payload"] = f_res
     encode(destination, m)
 
@@ -99,6 +106,8 @@ def enc_format_response_length(destination="../message-format-response-long.ber"
 
     m = Message()
     m["version"] = 1
+    m["caller"] = "1234567890ABCDEF"
+    m["callee"] = "ABCDEF1234567890"
     m["payload"] = f_res
     encode(destination, m, False)
 
@@ -153,13 +162,14 @@ def enc_data_request_length(destination="../message-data-request.ber", length=10
     dr["query"] = create_query(generate_query(length))
     request = Message()
     request["version"] = 1
+    request["caller"] = "1234567890ABCDEF"
+    request["callee"] = "ABCDEF1234567890"
     request["payload"] = dr
     encode(destination, request, False)
 
 
 def enc_data_response_length1(destination, length):
     a_res = DataResponse()
-    a_res["provider"] = "ebay"
     a_res["format"] = Format((1, 1, 1))
     a_res["type"] = "assessment"
     a_res["rid"] = 1
@@ -178,6 +188,8 @@ def enc_data_response_length1(destination, length):
 
     response = Message()
     response["version"] = 1
+    response["caller"] = "1234567890ABCDEF"
+    response["callee"] = "ABCDEF1234567890"
     response["payload"] = a_res
 
     encode(destination, response, False)
@@ -185,7 +197,6 @@ def enc_data_response_length1(destination, length):
 
 def enc_data_response_length(destination, length):
     a_res = DataResponse()
-    a_res["provider"] = "ebay"
     a_res["format"] = Format((1, 1, 1))
     a_res["type"] = "assessment"
     a_res["rid"] = 1
@@ -207,6 +218,8 @@ def enc_data_response_length(destination, length):
 
     response = Message()
     response["version"] = 1
+    response["caller"] = "1234567890ABCDEF"
+    response["callee"] = "ABCDEF1234567890"
     response["payload"] = a_res
 
     encode(destination, response, False)
@@ -235,4 +248,4 @@ if __name__ == '__main__':
     # enc_format_response_length("../long-message-format-response.ber", 2**20)
     # enc_data_request_length("../long-message-data-request.ber", 100)
     # enc_data_request_length("../message-data-request-%d.ber" % num, num)
-    # decode("../long-message-data-request.ber", Message)
+    # decode("../message-data-request-10.ber", Message)
