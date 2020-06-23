@@ -157,3 +157,8 @@ DataRequest:
       date=1
 -> ('127.0.0.1', 5000) [87B]
 ```
+
+## Data generation
+
+1. To generate data requests and response, run `python file_encoder.py`. This should generate `.ber` encodings for `DataRequest`s and `DataResponse`s.
+2. To generate `DataRequest`s and `DataResponse`s for other formats, use `python converter.py`.
