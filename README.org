@@ -25,29 +25,29 @@ The arguments have to following semantics:
 An example run:
 
 #+BEGIN_EXAMPLE
-$ python node.py 6000 qtm system2
+$ python node.py 6000 qtm system-name
 -- LISTENING (*, 6000) --
 #+END_EXAMPLE
 
 ** Usage
 Once the program is run, you can issue commands.
 
-Every command has the form of =IP PORT COMMAND= where you specify the =IP= address and the =PORT= number of the system to which you want to send the =COMMAND=.
+Commands have the form of =IP PORT COMMAND [IDENTITY] [PARAMS]=.
 
 *** Connecting to other systems
 
 To connect to another instance of such program that runs on =localhost= on port =5000=, issue the following.
 #+BEGIN_EXAMPLE
-127.0.0.1 50000 connect
+127.0.0.1 5000 connect
 #+END_EXAMPLE
 
 To connect to multiple systems, issue multiple connect statements.
 
 *** Requesting =Rating= definitions
-To obtain the definitions of the =Rating='s =value= component, issue the =freq= command.
+To obtain the definitions of the =Rating='s =value= component that the =callee= uses, issue the =freq= command.
 
 #+BEGIN_EXAMPLE
-127.0.0.1 5000 freq
+127.0.0.1 5000 freq callee
 -> ('127.0.0.1', 5000) [9B]
 (127.0.0.1, 5000): format-response [size=203B]
 FormatResponse:
@@ -59,18 +59,17 @@ FormatResponse:
 #+END_EXAMPLE
 
 *** Requesting trust and assessments
-To obtain assessments or trust values from a remote system, issue the =areq= or =treq= command (assessment-request or trust-request) and then specify the =query=.
+To obtain assessments or trust values from a =callee=, issue the =areq= or =treq= command (assessment-request or trust-request) and then specify the =query=.
 
 When specifying the query, keep in mind that both example trust and reputation systems contain:
-
--  four different entities (=alice=, =bob=, =charlie=, =david=, =eve=),
--  four different services (=seller=, =buyer=, =renter=, =letter=),
--  all =date= values are between =0= and =79=.
+- four different entities (=alice=, =bob=, =charlie=, =david=, =eve=),
+- four different services (=seller=, =buyer=, =renter=, =letter=),
+- all =date= values are between =0= and =79=.
 
 Also, remember to capitalize logical operators =AND= and =OR=.
 
 #+BEGIN_EXAMPLE
-127.0.0.1 5000 areq source = alice AND target = bob AND date > 1
+127.0.0.1 5000 areq callee source = alice AND target = bob AND date > 1
 -> ('127.0.0.1', 5000) [54B]
 (127.0.0.1, 5000): data-response [size=271B]
 4 hits: DataResponse:
@@ -147,6 +146,6 @@ DataRequest:
 -> ('127.0.0.1', 5000) [87B]
 #+END_EXAMPLE
 
-** Data generation
-1. To generate data requests and response, run =python file_encoder.py=. This should generate =.ber= encodings for ~DataRequest~s and ~DataResponse~s.
-2. To generate ~DataRequest~s and ~DataResponse~s for other formats, use ~python converter.py~.
+** Misc comments
+1. To generate data requests and response, run =python file_encoder.py=. This should generate =.ber= encodings for =DataRequest=s and =DataResponse=s.
+2. To generate =DataRequest=s and =DataResponse=s for other formats, use =python converter.py=.
