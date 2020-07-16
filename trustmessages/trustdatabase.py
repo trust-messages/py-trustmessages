@@ -1,5 +1,4 @@
 """Examples of two trust management systems: QTM and SL"""
-from __future__ import absolute_import, print_function
 
 import itertools
 import os

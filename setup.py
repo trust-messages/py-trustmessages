@@ -10,7 +10,7 @@ setup(
     name='trustmessages',
     version=VERSION,
     description='Python ASN.1 trust messages',
-    url='http://www.fri.uni-lj.si',
+    url='http://github.com/trust-messages/py-trust-messages',
     author=AUTHOR,
     author_email=EMAIL,
     packages=['trustmessages'],

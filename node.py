@@ -1,13 +1,11 @@
 """
 Example TMS.
 """
-from __future__ import absolute_import, print_function
-
 import sys
+from builtins import input
 from functools import partial
 from random import randint
 
-from builtins import input
 from pyasn1.codec.ber import decoder, encoder
 from pyasn1.type import univ
 
@@ -18,7 +16,7 @@ from trustmessages.trustdatabase import QtmDb, SLDb
 from trustmessages.trustutils import create_predicate, create_query, pp
 
 
-def simple_tms(trust_socket, address, port, data, db, provider):
+def simple_tms(trust_socket, address, port, data, db):
     try:
         incoming_message, remaining = decoder.decode(data, asn1Spec=Message())
         assert remaining == b"", "Message did not fully decode: %s" % remaining
@@ -34,7 +32,6 @@ def simple_tms(trust_socket, address, port, data, db, provider):
             hits = filter(predicate,
                           db.trust_db if payload["type"] == "trust" else db.assessment_db)
             dr = DataResponse()
-            dr["provider"] = provider
             dr["format"] = db.tms_trust if payload["type"] == 0 else db.tms_assessment
             dr["rid"] = payload["rid"]
             dr["type"] = payload["type"]
@@ -43,6 +40,8 @@ def simple_tms(trust_socket, address, port, data, db, provider):
 
             response = Message()
             response["version"] = 1
+            response["caller"] = incoming_message["caller"]
+            response["callee"] = incoming_message["callee"]
             response["payload"] = dr
             trust_socket.send(address, port, encoder.encode(response))
         elif type_ == "data-response":
@@ -57,6 +56,8 @@ def simple_tms(trust_socket, address, port, data, db, provider):
             fr["trust-def"] = db.trust_schema
             response = Message()
             response["version"] = 1
+            response["caller"] = incoming_message["caller"]
+            response["callee"] = incoming_message["callee"]
             response["payload"] = fr
             trust_socket.send(address, port, encoder.encode(response))
         elif type_ == "format-response":
@@ -67,21 +68,24 @@ def simple_tms(trust_socket, address, port, data, db, provider):
 
 
 def main(address, port, database, provider):
-    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb(),
-                      provider=provider)
+    handler = partial(simple_tms, db=QtmDb() if database == 'qtm' else SLDb())
     trust_socket = trustsocket.TrustSocket(address, port, handler)
     trust_socket.start()
 
     while True:
         try:
             user_input = input().strip()
-            split = user_input.split(" ", 3)
+            split = user_input.split(" ", 4)
 
+            query = None
+            callee = None
             if len(split) == 3:
                 address, port, verb = split
-                query = None
-            elif len(split) > 3:
-                address, port, verb, query = split
+            elif len(split) == 4:
+                address, port, verb, callee = split
+            elif len(split) > 4:
+                print(split)
+                address, port, verb, callee, query = split
             else:
                 print("Invalid command: %s" % user_input)
                 continue
@@ -99,10 +103,14 @@ def main(address, port, database, provider):
                 request = Message()
                 request["version"] = 1
                 request["payload"] = dr
+                request["caller"] = provider
+                request["callee"] = callee
                 trust_socket.send(address, port, encoder.encode(request))
             elif verb == "freq":
                 request = Message()
                 request["version"] = 1
+                request["caller"] = provider
+                request["callee"] = callee
                 request["payload"] = FormatRequest(randint(0, 1000))
                 trust_socket.send(address, port, encoder.encode(request))
             else:

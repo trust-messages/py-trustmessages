@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 from antlr4 import InputStream, CommonTokenStream
 
 from trustmessages.QueryLexer import QueryLexer

@@ -6,18 +6,9 @@ An example Python application that uses =trust messages= ASN.1 schema.
 The application is a simple command-line tool with netstat-like behavior: once you run the program, you are given an input prompt where you can connect to other such programs and query them for trust and reputation information. If another system connects to your program and sends a request, you are shown the incoming query on the standard output. The requests are replied automatically.
 
 ** Running
-To build this program you require Python 2 or 3 (recommended), and
-[[https://en.wikipedia.org/wiki/Pip_(package_manager)][pip]] to install
-required libraries. To download and install all libraries for Python 2,
-run:
-
+To build this program you need Python 3, and [[https://en.wikipedia.org/wiki/Pip_(package_manager)][pip]] to install required libraries. To download and install all libraries, run:
 #+BEGIN_EXAMPLE
-pip install -r requirements-2.txt
-#+END_EXAMPLE
-
-And for Python 3, run:
-#+BEGIN_EXAMPLE
-pip install -r requirements-3.txt
+pip install -r requirements.txt
 #+END_EXAMPLE
 
 Once the libraries are installed, you can run the program with:
